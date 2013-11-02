@@ -1,0 +1,66 @@
+<h2>役割</h2>
+<p>ディレクティブは以下の役割を果たすために使用されるものです。</p>
+<ul>
+<li>宣言的な HTML の拡張（つまり HTML への機能追加）</li>
+</ul>
+<p>ディレクティブは HTML に新たな振る舞いを与えたり DOM を変更したりします。</p>
+<h2>使う</h2>
+<p>HTML 内で普通にマークアップするだけです。
+ディレクティブはタグや属性、クラス、コメントなどの方法で呼び出します。
+ただし全てのディレクティブで全ての呼び出し方が使えるわけではありません。
+実際には多くのディレクティブが属性としてしか呼び出せません。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-app</span>=<span class="value">"App"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"MainCtrl"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">h1</span> <span class="attribute">class</span>=<span class="value">"ng-bind: title"</span>&gt;</span><span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">button</span> <span class="attribute">data-ng-click</span>=<span class="value">"say()"</span>&gt;</span>Click me!!<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">ng-include="template"</span>&gt;</span><span class="tag">&lt;/<span class="title">ng-include</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<p><code>ng-</code> を含むタグ名、属性名、データ属性名、クラス名は全て AngularJS のコアモジュールが提供しているディレクティブです。</p>
+<p>各ディレクティブがどんな働きを HTML に追加したのか軽く触れます。</p>
+<ul>
+<li>ngApp<ul>
+<li>App モジュールを起動し子孫要素のテンプレートとディレクティブを解析します。</li>
+</ul>
+</li>
+<li>ngController<ul>
+<li>ビューに MainCtrl コントローラをアタッチし子孫要素の式のコンテキストを MainCtrl の $scope と結びつけます。</li>
+</ul>
+</li>
+<li>ngBind<ul>
+<li>$scope.title プロパティの値を自身の textContent に代入します。</li>
+</ul>
+</li>
+<li>ngClick<ul>
+<li>自身がクリックされると $scope.say 関数が実行されます。</li>
+</ul>
+</li>
+<li>ngInclude<ul>
+<li>$scope.template プロパティの値の外部ファイルを読み込み自身の innerHTML に代入します。</li>
+</ul>
+</li>
+</ul>
+<p>HTML バリデータをパスするようにしたい場合 <code>data-</code> 接頭辞を付けて汎用データ属性としてマークアップすることが可能です。</p>
+<h2>作る</h2>
+<p>module インスタンスの directive メソッドでモジュールに新しいディレクティブを定義できます。</p>
+<pre><code class="lang-javascript">module.directive(<span class="string">'myDialog'</span>, [<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">(scope, $el, attrs)</span> {</span>
+    $el.on(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+      window.alert(<span class="string">'Hello '</span> + attrs.myDialog);
+    });
+  };
+}]);</code></pre>
+<p>第一引数がディレクティブの名前になります。
+第二引数はアノテーション配列です。</p>
+<p>アノテーション配列の最後にはファクトリ関数を含めます。
+ファクトリ関数が返すべきものはディレクティブの振る舞いを定義した関数(リンク関数)です。</p>
+<p>ファクトリ関数はディレクティブがはじめて呼び出された時に一度だけ実行されます。
+2回目以降のディレクティブ呼び出し時にはファクトリ関数は実行されません。</p>
+<p>ディレクティブの名前はキャメルケースで指定します。
+HTML 内ではハイフンケースで呼び出します。
+上記の例では <code>&lt;p my-dialog=&quot;world&quot;&gt;Click me!!&lt;/p&gt;</code> のように呼び出します。
+要素をクリックすると属性値を受け取って アラートに 「Hallo world」と表示します。</p>
+<p>上記は最も単純化された定義法でありより高度なディレクティブを作成する場合、ファクトリ関数はディレクティブ定義オブジェクトを返すようにします。</p>
+<p>ディレクティブ定義オブジェクトについては <a href="http://docs.angularjs.org/guide/directive">AngularJS: Directives</a> や <a href="http://qiita.com/grapswiz@github/items/878432cb7e04039b06fb">JavaScript - AngularJSのdirectiveとは - Qiita [キータ]</a> を参考してください。</p>
+<div preview="article.examples.example"></div>
+

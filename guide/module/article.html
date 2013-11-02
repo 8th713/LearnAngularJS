@@ -1,0 +1,69 @@
+<p>AngularJS でアプリケーションを構築する時最初に必要になるのがモジュールです。</p>
+<p>モジュールはアプリケーションが必要としているパーツの情報を持ったオブジェクトです。</p>
+<p>AngularJS ではアプリケーションに必要な機能は全てモジュールのメソッドを使って定義します。</p>
+<h2>作る</h2>
+<p>モジュールを作成するには angular.module メソッドを使用します。</p>
+<pre><code class="lang-javascript"><span class="keyword">var</span> app = angular.module(<span class="string">'App'</span>, []);</code></pre>
+<p>第一引数はアプリケーションの名前です。
+第二引数の配列には作成するモジュールが依存している外部モジュールの名前を列挙します。
+依存するモジュールがひとつも存在しない場合でも第二引数を省略することは出来ません。
+modelu メソッドは第二引数が省略されると作成済みモジュールを取得するゲッターとして機能します。</p>
+<h2>使う</h2>
+<p>AngularJS は DOM の準備が終わる(DOMContentLoaded)と ng-app 属性を持った要素を探し出し属性値で指定されたモジュールをロードしてアプリケーションを開始します。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">body</span> <span class="attribute">ng-app</span>=<span class="value">"App"</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span></code></pre>
+<h2>モジュールの依存解決</h2>
+<p>モジュールは別のモジュールに定義された機能を利用することが出来ます。
+以下の例では App モジュールは自身に定義された機能以外に Sub モジュールに定義された機能も使用することが出来ます。</p>
+<pre><code class="lang-javascript"><span class="comment">// sub.js</span>
+angular.module(<span class="string">'Sub'</span>, []);</code></pre>
+<pre><code class="lang-javascript"><span class="comment">// app.js</span>
+angular.module(<span class="string">'App'</span>, [<span class="string">'Sub'</span>]);</code></pre>
+<p>上記のコードではモジュールは別々のファイルに記述されています。
+この時 sub.js は app.js より先に読み込まれている<strong>必要がありません</strong>。
+どちらが先に読み込まれても正しく動作します。</p>
+<p>モジュールの依存解決はファイルがロードされた時ではなく、モジュールがロードされるときに行われます。</p>
+<h2>モジュールの設定を変更する</h2>
+<p>モジュールで使用するアプリケーション共通の機能(サービス)の設定を変更するためには config メソッドを使用します。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [])
+.config([<span class="string">'$interpolateProvider'</span>, <span class="string">'$locationProvider'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($interpolateProvider, $locationProvider)</span> {</span>
+  <span class="comment">// テンプレート構文を // ~ // に変更</span>
+  $interpolateProvider.startSymbol(<span class="string">'//'</span>).endSymbol(<span class="string">'//'</span>);
+
+  <span class="comment">// $location サービスの振る舞いを History API を使用するものに変更</span>
+  $locationProvider.html5Mode(<span class="literal">true</span>);
+}]);</code></pre>
+<p>config メソッドはアノテーション配列を受け取ります。
+設定関数はモジュールがロードされたときに実行されます。実行タイミングはサービスが初期化されるよりも前であることに注意してください。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+アノテーション配列については<a href="#/guide/dependence" class="alert-link">依存関係の注釈付け</a>で説明しています。
+</div>
+
+
+<h2>モジュールにスタートアップ処理を与える</h2>
+<p>モジュールのロード完了直後に実行する必要がある処理を作成するには run メソッドを使用します。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [])
+.run([<span class="string">'$rootScope'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(scope)</span> {</span>
+  scope.$on(<span class="string">'notification'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(evt, text)</span> {</span>
+    <span class="comment">// ...</span>
+  });
+}]);</code></pre>
+<p>run メソッドはアノテーション配列を受け取ります。
+関数はモジュールがロードされ設定処理が終わった直後に実行されます。
+config メソッドと違い関数はサービスを受け取ることができます。</p>
+<h2>モジュールに機能を定義する</h2>
+<p>モジュールにコントローラやサービスを定義する方法は各ガイドを参照してください。</p>
+<h2>モジュールの作成からアプリケーション開始までの流れ</h2>
+<ol>
+<li>js ファイルがロードされます。</li>
+<li>angular.module でモジュールが作成されます。</li>
+<li>module オブジェクトのメソッドで機能が定義されます。
+この時点では引数として渡した関数は全て実行されません。</li>
+<li>DOMContentLoaded のタイミングで フレームワークが ng-app 属性を持った要素を探します。</li>
+<li>要素が見つかったら指定モジュールの依存を解決します。</li>
+<li>モジュールの設定関数が(あれば)実行されます。</li>
+<li>モジュールのスタートアップ関数が(あれば)実行されます。</li>
+<li>モジュールの情報を元にディレクティブが呼び出されます。</li>
+</ol>
+

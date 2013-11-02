@@ -1,0 +1,48 @@
+<p>双方向バインディングを理解しユーザーが入力した値を受け取りましょう。</p>
+<h2>input 要素の値を受け取る</h2>
+<p>先ほどのステップで ToDo を作成することが出来るようになりました。
+しかし肝心の要件が仮値のままです。
+本来なら要件はフォームの input 要素から取得せねばなりません。</p>
+<p>input 要素の値を表すモデルが存在すれば addTodo メソッドはユーザーが入力した値を参照できそうです。
+まず input 要素の値を表すモデルを作成します。</p>
+<pre><code class="lang-javascript">$scope.newTitle = <span class="string">''</span>;</code></pre>
+<p>input 要素ははじめ値を持っている必要がないので初期値は空文字列です。
+newTitle モデルは input 要素の値と結びついてユーザーの入力に合わせて値を更新する必要があります。
+<a href="http://docs.angularjs.org/api/ng.directive:ngModel">ngModel ディレクティブ</a>を使用してモデルと要素を結びつけましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">ng-submit</span>=<span class="value">"addTodo()"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">placeholder</span>=<span class="value">"新しい要件を入力"</span><span class="attribute">.</span>
+         <span class="attribute">ng-model</span>=<span class="value">"newTitle"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"submit"</span>&gt;</span>追加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">form</span>&gt;</span></code></pre>
+<p>input 要素に対して ngModel ディレクティブの使用を宣言します。
+ngModel ディレクティブは要素の値に紐付けたいモデルを受け取ります。
+これで input 要素の値が変化した時 newTitle モデルの値も合わせて更新されるようになります。</p>
+<p>最後に addTodo メソッド内で newTitle モデルを参照し新しく作成する ToDo の要件に代入されるようにしましょう。</p>
+<pre><code class="lang-javascript">$scope.addTodo = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.todos.push({
+    title: $scope.newTitle,
+    done: <span class="literal">false</span>
+  });
+
+  $scope.newTitle = <span class="string">''</span>;
+};</code></pre>
+<p>新しい Todo が作成されたら input 要素の値はもう必要ないので newTitle モデルは初期値に戻しておきましょう。
+newTitle モデルに代入を行えば input 要素の値もそれに追従します。</p>
+<p>ついでなのでリスト内の ToDo の状態にも ngModel ディレクティブを使用して ToDo モデルの done プロパティと結びつけておきましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span> <span class="attribute">ng-repeat</span>=<span class="value">"todo in todos"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"checkbox"</span> <span class="attribute">ng-model</span>=<span class="value">"todo.done"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span>&gt;</span><span class="variable">{{ todo.title }}</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"reset"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">li</span>&gt;</span></code></pre>
+<p>これでリスト内の ToDo モデルもチェックボックスの状態に合わせて更新されます。</p>
+<p>完了状態の　ToDo には done クラスがつくという仕様なので todo.done プロパティの値に合わせてクラスが付与されるようにしましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span> <span class="attribute">ng-repeat</span>=<span class="value">"todo in todos"</span>
+    <span class="attribute">ng-class</span>=<span class="value">"{done: todo.done}"</span>&gt;</span></code></pre>
+<p>li 要素に対して <a href="http://docs.angularjs.org/api/ng.directive:ngClass">ngClass ディレクティブ</a>の使用を宣言します。
+ngClass ディレクティブは様々な形式の値を受けとれますが今回はマップオブジェクトを使用します。
+マップオブジェクトは <code>{&#39;クラス名&#39;: クラスを付与する条件式}</code> の形式です。
+上記の場合 todo.done プロパティが true なら done クラスが付与されるという意味になります。</p>
+<div preview="article.examples.example"></div>
+

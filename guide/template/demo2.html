@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../assets/css/example.css">
+</head>
+<body ng-app="Example">
+  <div class="location-bar"></div>
+  <div class="container">
+    <p>{{ count }}</p>
+    <p>
+      <button ng-click="countUp()">+1</button>
+      <button ng-click="delay()">2秒後に更新されます</button>
+    </p>
+    <hr>
+    <p><input type="text" class="form-control" ng-model="string"></p>
+    <p>{{ string }}</p>
+  </div>
+
+  <script src="../../components/angular/angular.min.js"></script>
+  <script src="../../assets/js/location.js"></script>
+  <script src="demo2.js"></script>
+</body>
+</html>

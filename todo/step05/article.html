@@ -1,0 +1,36 @@
+<p>フィルタを使用しリストの表示を絞り込みましょう。</p>
+<h2>表示を加工する</h2>
+<p>ToDo モデルの状態が変更可能になったので、指定した状態の ToDo だけを表示できるようにしましょう。</p>
+<p>データを変更せずに表示だけを加工する必要があるので li 要素に対してコアモジュールの <a href="http://docs.angularjs.org/api/ng.filter:filter">filter フィルタ</a>を使用します。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span>
+    <span class="attribute">ng-repeat</span>=<span class="value">"todo in todos | filter:currentFilter"</span>
+    <span class="attribute">ng-class</span>=<span class="value">"{done: todo.done}"</span>&gt;</span></code></pre>
+<p>filter フィルタはフィルタリング条件となる引数を受け取り、合致する要素のみの配列を返してくれます。
+フィルタリング条件引数は currentFilter モデルに代入することにしました。
+コントローラ内でフィルタリング条件を格納する $scope.filter モデルとフィルタリングの現在の状態を表す currentFilter モデル、フィルタリングの状態を変更する changeFilter メソッドを作成しましょう。</p>
+<pre><code class="lang-javascript"><span class="comment">// フィルタリング条件モデル</span>
+$scope.filter = {
+  done: { done: <span class="literal">true</span> },      <span class="comment">// 完了のみ</span>
+  remaining: { done: <span class="literal">false</span> } <span class="comment">// 未了のみ</span>
+};
+
+<span class="comment">// 現在のフィルタの状態モデル</span>
+$scope.currentFilter = <span class="literal">null</span>;
+
+<span class="comment">// フィルタリング条件を変更するメソッド</span>
+$scope.changeFilter = <span class="function"><span class="keyword">function</span> <span class="params">(filter)</span> {</span>
+  $scope.currentFilter = filter;
+};</code></pre>
+<p>初期状態では絞り込みはしないので currentFilter の初期値は null にします。</p>
+<p>続いてボタンクリックでフィルタリングが実行できるように html を編集しましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"changeFilter()"</span>
+        <span class="attribute">ng-class</span>=<span class="value">"{active: !currentFilter}"</span>&gt;</span>全部 <span class="tag">&lt;<span class="title">span</span>&gt;</span><span class="variable">{{ todos.length }}</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"changeFilter(filter.remaining)"</span>
+        <span class="attribute">ng-class</span>=<span class="value">"{active: currentFilter == filter.remaining}"</span>&gt;</span>未了 <span class="tag">&lt;<span class="title">span</span>&gt;</span>n<span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"changeFilter(filter.done)"</span>
+        <span class="attribute">ng-class</span>=<span class="value">"{active: currentFilter == filter.done}"</span>&gt;</span>完了 <span class="tag">&lt;<span class="title">span</span>&gt;</span>n<span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span></code></pre>
+<p>ngClick ディレクティブを使い使用したいフィルタリング条件モデルを指定して changeFilter を実行するようにします。
+またボタンはクリックされた時 <code>.active</code> になる必要があります。
+ngClass ディレクティブで currentFilter とフィルタリング条件モデルを比較するようにしましょう。</p>
+<div preview="article.examples.example"></div>
+

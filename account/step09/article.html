@@ -1,0 +1,99 @@
+<p>前回のステップまでで帳票アプリは完成です。
+しかし改めて完成したコードを眺めると無駄な箇所があることがわかります。</p>
+<h2>複数のコントローラが全く同じ機能を別々に実装している</h2>
+<p>getSubtotal メソッドと getTotalAmount メソッドが CreationController と SheetController の2箇所に存在しています。
+コードの重複は無駄ですし処理に変更があった際の修正箇所も増えてしまいます。</p>
+<p>これらのメソッドはサービスとして一箇所にまとめて実装しましょう。</p>
+<pre><code class="lang-javascript">.service(<span class="string">'counting'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">this</span>.getSubtotal = <span class="function"><span class="keyword">function</span> <span class="params">(orderLine)</span> {</span><span class="comment">/* 省略 */</span>};
+  <span class="keyword">this</span>.getTotalAmount = <span class="function"><span class="keyword">function</span> <span class="params">(lines)</span> {</span><span class="comment">/* 省略 */</span>};
+})
+.controller(<span class="string">'CreationController'</span>, [<span class="string">'$scope'</span>, <span class="string">'sheets'</span>, <span class="string">'counting'</span>,
+<span class="function"><span class="keyword">function</span> <span class="title">CreationController</span><span class="params">($scope, sheets, counting)</span> {</span>
+  <span class="comment">// 省略</span>
+
+  angular.extend($scope, counting); <span class="comment">// $scope オブジェクトに counting サービスメソッドをミックスイン</span>
+
+  $scope.initialize();
+}])
+.controller(<span class="string">'SheetController'</span>, [<span class="string">'$scope'</span>, <span class="string">'$routeParams'</span>, <span class="string">'sheets'</span>, <span class="string">'counting'</span>,
+<span class="function"><span class="keyword">function</span> <span class="title">SheetController</span><span class="params">($scope, $params, sheets, counting)</span> {</span>
+  angular.extend($scope, sheets.get($params.id));
+  angular.extend($scope, counting); <span class="comment">// counting サービスで $scope オブジェクトを拡張</span>
+}]);</code></pre>
+<p>コントローラはサービスを受け取り $scope オブジェクトにミックスインしてビューから参照できるようにします。</p>
+<p>副次的なメリットとしてコンスタクタがインスタンス化されるときに関数を作成するコストが少なくなりました。</p>
+<h2>コントローラのインスタンス化のコストを減らす</h2>
+<p>コントローラ関数はコンストラクタです。
+マルチビューアプリケーションではコントローラはルートが変わるたびにインスタンス化されます。</p>
+<p>コンストラクタ内で関数定義を行うとインスタンス化のたびに新しく関数を定義することになりインスタンス化の際にかかるコストが高くなります。</p>
+<p>一方サービスは常にシングルトンであり、サービス内の関数定義はアプリケーション全体を通して一度だけしか行われません。
+上記を踏まえた上で改めてコードを見れば新たに無駄な場所を発見できると思います。</p>
+<p>CreationController 内で定義されたビジネスロジックの定義です。
+これらもすべてサービスにカプセル化しコントローラ内ではミックスインするだけにしましょう。</p>
+<pre><code class="lang-javascript">.service(<span class="string">'sheetAction'</span>, [<span class="string">'$location'</span>, <span class="string">'sheets'</span>,
+<span class="function"><span class="keyword">function</span> <span class="params">($location, sheets)</span> {</span>
+  <span class="function"><span class="keyword">function</span> <span class="title">createOrderLine</span><span class="params">()</span> {</span><span class="comment">/* 省略 */</span>}
+
+  <span class="keyword">this</span>.initialize = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span><span class="comment">/* 省略 */</span>};
+  <span class="keyword">this</span>.addLine = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span><span class="comment">/* 省略 */</span>};
+  <span class="keyword">this</span>.removeLine = <span class="function"><span class="keyword">function</span> <span class="params">(target)</span> {</span><span class="comment">/* 省略 */</span>};
+  <span class="keyword">this</span>.save = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span><span class="comment">/* 省略 */</span>};
+}])
+.controller(<span class="string">'CreationController'</span>, [<span class="string">'$scope'</span>,  <span class="string">'counting'</span>, <span class="string">'sheetAction'</span>,
+<span class="function"><span class="keyword">function</span> <span class="title">CreationController</span><span class="params">($scope, counting, sheetAction)</span> {</span>
+  angular.extend($scope, sheetAction); <span class="comment">// $scope オブジェクトに sheetAction サービスメソッドをミックスイン</span>
+  angular.extend($scope, counting);
+
+  $scope.initialize();
+}])</code></pre>
+<h2>テンプレート内のわかりにくい部分をコントローラに移管する</h2>
+<p>テンプレート内の ngPattern ディレクティブに渡す正規表現や削除ボタンの ngDisabled ディレクティブに渡す条件式などは HTML 上では少し把握しづらいものです。
+とりわけこのようなものはコメントを残しておかないと、あとで困った事になるケースも有り得ます(今回のケースでは単純な条件なのでまだ大丈夫だとは思いますが)。</p>
+<p>わかりにくい部分はモデル化してビューにはモデルの参照だけさせるようにしましょう。</p>
+<pre><code class="lang-javascript">$scope.integer = <span class="regexp">/^\d+$/</span>; <span class="comment">// 整数にマッチ</span></code></pre>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span> <span class="attribute">required</span> <span class="attribute">min</span>=<span class="value">"0"</span> <span class="attribute">ng-pattern</span>=<span class="value">"integer"</span> <span class="attribute">ng-model</span>=<span class="value">"orderLine.unitPrice"</span>&gt;</span></code></pre>
+<p>このほうがわかりやすいですね。</p>
+<p>ngDisabled ディレクティブに渡す条件はリストが更新されるたびに評価される必要があります。
+もっとも単純な例は下記のやり方です。</p>
+<pre><code class="lang-javascript">$scope.isDisabled = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  retrun $scope.lines.length &lt; <span class="number">2</span>;
+};</code></pre>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">ng-disabled</span>=<span class="value">"isDisabled()"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span></code></pre>
+<p>しかしこのやり方は実はあまりいい実装ではありません。
+例えば100個の注文明細行をもった帳票だった場合、個別の実行結果が変わらないにもかかわらず isDisabled メソッドは100回コールされることになります。
+これは恐ろしく無駄ですので他の方法で実装しましょう。</p>
+<pre><code class="lang-javascript">$scope.$watch(<span class="string">'lines.length &lt; 2'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(val)</span> {</span>
+  $scope.disabledDelBtn = val;
+});</code></pre>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">ng-disabled</span>=<span class="value">"disabledDelBtn"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.$rootScope.Scope#$watch">$watch</a> メソッドを使いボタンを無効化する条件を監視しその結果をモデル化します。
+ディレクティブは関数実行ではなくモデルを参照するだけなので要素数が増えてもパフォーマンスに与える影響が少なくてすみます。</p>
+<div class="alert alert-warning">
+<strong>Warning:</strong>
+最初の状態と比べた場合、パフォーマンスが低下する可能性があるのでメンテナンス性とパフォーマンスを秤にかける必要があります。
+</div>
+
+<p>lines モデルや lines モデルの length プロパティを監視してもいいのですがその場合コールバック内で条件評価を行うことになります。
+それは結果的に disabledDelBtn モデルの値に変化がない場合でもコールバックが実行されるケースがあることを意味するので無駄が発生してしまいます。</p>
+<pre><code class="lang-javascript">$scope.$watch(<span class="string">'lines.length'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(length)</span> {</span>
+  <span class="comment">// この関数は lenes.length が 4 から 5 に変化した時も呼ばれます</span>
+  <span class="comment">// その条件では length &lt; 2 の結果には変化がありません。</span>
+  $scope.disabledDelBtn = length &lt; <span class="number">2</span>;
+});</code></pre>
+<pre><code class="lang-javascript">$scope.$watch(<span class="string">'lines.length &lt; 2'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(val)</span> {</span>
+  <span class="comment">// この関数は lines.length &lt; 2 の結果が変わった時だけ呼ばれます</span>
+  $scope.disabledDelBtn = val;
+});</code></pre>
+<p>$watch を使う場合コールバック内の処理は簡潔なものにとどめましょう。
+監視対象によっては開発者が思う以上にコールバックが呼ばれたり最悪の場合無限ループに陥るケースもありえます。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+AngularJS ではこのような無限ループ(digest ループ)はデフォルトで 10回繰り返した段階で強制的にループから抜けます。
+</div>
+
+<div preview="article.examples.example"></div>
+
+<h2>完成</h2>
+<p>以上でチュートリアルは終了です。</p>
+

@@ -1,0 +1,52 @@
+<p>パスパラメータから任意の帳票を選択し帳票の詳細を表示しましょう。</p>
+<h2>パス内の変数を取得する</h2>
+<p>帳票詳細ページのパスは取得したい帳票の id を持っています。
+パスのパラメータは <a href="http://docs.angularjs.org/api/ngRoute.$routeParams">$routeParams サービス</a> が保持しています。</p>
+<p>ルートの設定で <code>/sheet/:id</code> と設定したので条件に一致したパスに訪問した時 $routeParams サービスは <code>{id: &#39;パスの :id 部分の文字列&#39;}</code> を保持しています。</p>
+<p>これを利用して sheets サービスの get メソッドを実行し任意の帳票を取得しましょう。</p>
+<pre><code class="lang-javascript">.controller(<span class="string">'SheetController'</span>, [<span class="string">'$scope'</span>, <span class="string">'$routeParams'</span>, <span class="string">'sheets'</span>,
+<span class="function"><span class="keyword">function</span> <span class="title">SheetController</span><span class="params">($scope, $params, sheets)</span> {</span>
+  <span class="keyword">var</span> sheet = sheets.get($params.id); <span class="comment">// 帳票を取得</span>
+
+  angular.extend($scope, sheet); <span class="comment">// $scope オブジェクトを sheet で拡張</span>
+
+  $scope.getSubtotal = <span class="function"><span class="keyword">function</span> <span class="params">(orderLine)</span> {</span><span class="comment">/* 省略 */</span>};
+
+  $scope.getTotalAmount = <span class="function"><span class="keyword">function</span> <span class="params">(lines)</span> {</span><span class="comment">/* 省略 */</span>};
+}]);</code></pre>
+<p>詳細ページにも小計と合計金額を表示する必要があるので各ビジネスロジックも準備します。</p>
+<p>モデルの準備が完了したらテンプレートを編集します。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-show</span>=<span class="value">"id"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">h1</span>&gt;</span>帳票詳細 #<span class="variable">{{ id }}</span><span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">p</span>&gt;</span>作成日時: <span class="variable">{{ createdAt | date:'yyyy/MM/dd HH:mm' }}</span><span class="tag">&lt;/<span class="title">p</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">table</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">thead</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>商品名<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>単価<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>個数<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>小計<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">thead</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tbody</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span> <span class="attribute">ng-repeat</span>=<span class="value">"orderLine in lines"</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="variable">{{ orderLine.productName }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="variable">{{ orderLine.unitPrice | number }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="variable">{{ orderLine.count | number }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="variable">{{ getSubtotal(orderLine) | number }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">tbody</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tfoot</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span> <span class="attribute">colspan</span>=<span class="value">"3"</span>&gt;</span>合計:<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="variable">{{ getTotalAmount(lines) | number }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">tfoot</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">table</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+<span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-hide</span>=<span class="value">"id"</span>&gt;</span>
+  存在しない帳票を参照しています。 <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/new"</span>&gt;</span>新しい帳票を作る<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<p>ngShow/ngHide ディレクティブを使用して帳票が正常に取得できなかった時用の表示も用意しましょう。</p>
+<div preview="article.examples.example" hash="sheet/1"></div>
+

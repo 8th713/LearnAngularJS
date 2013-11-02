@@ -1,0 +1,27 @@
+<p>アプリの作成にあたって最低限必要なものを準備します。</p>
+<p>まず index.html と app.js を用意します。
+作業はこの2つのファイルを編集して行います。</p>
+<p>まず index.html を以下のように編集します。</p>
+<pre><code class="lang-html"><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> <span class="attribute">lang</span>=<span class="value">"ja"</span>&gt;</span>
+<span class="tag">&lt;<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"UTF-8"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">title</span>&gt;</span>Todo アプリ<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span> <span class="attribute">ng-app</span>=<span class="value">"App"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.3/angular.min.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"app.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre>
+<h2>フレームワークを読み込む</h2>
+<p>今回は安定版(v1.0.8)ではなく <strong>RC 版(v1.2.0-rc.3)</strong>を使用します。
+ソースマップに対応しているので圧縮版で開発しても問題はありません。</p>
+<p>本来は古い Internet Explorer の為にもう少し色々書く必要がありますが今回は省きます。
+詳しくは<a href="http://docs.angularjs.org/guide/ie">公式サイト</a>を読みましょう。</p>
+<h2>モジュールを読み込む</h2>
+<p>body 要素に <code>ng-app=&quot;App&quot;</code> を追加します。
+この記述で AngularJS はこのページに App モジュールをロードするようになります。
+しかしこの時点では App モジュールはまだ存在していないのでコンソールにエラーが出ます。</p>
+<p>app.js を編集し App モジュールを作成しましょう。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, []);</code></pre>
+

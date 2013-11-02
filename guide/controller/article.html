@@ -1,0 +1,66 @@
+<h2>役割</h2>
+<p>AngularJS のコントローラは以下の役割を果たすために使用されるものです。</p>
+<ul>
+<li>$scope オブジェクトにプロパティを追加しモデルを作成する。</li>
+<li>$scope オブジェクトにメソッドを追加しビューから参照できるようにする。</li>
+</ul>
+<p>コントローラはビューに一切依存せずにモデルの操作のみに集中する場所です。</p>
+<h2>作る</h2>
+<p>module インスタンスの controller メソッドでモジュールに新しいコントローラを定義できます。</p>
+<pre><code class="lang-javascript">module.controller(<span class="string">'UserController'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span> <span class="title">UserController</span><span class="params">($scope)</span> {</span>
+  <span class="comment">// users model initial value</span>
+  $scope.users = [
+    {name: <span class="string">'foo'</span>, email: <span class="string">'bar@example.com'</span>}
+  ];
+
+  <span class="comment">// submit event listener</span>
+  $scope.addUser = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    $scope.users.push({
+      name: $scope.name,
+      email: $scope.email
+    });
+    reset();
+  };
+
+  <span class="comment">// reset name and email model</span>
+  <span class="function"><span class="keyword">function</span> <span class="title">reset</span><span class="params">()</span> {</span>
+    $scope.name = <span class="literal">null</span>;
+    $scope.email = <span class="literal">null</span>;
+  }
+
+  <span class="comment">// initialize name and email model</span>
+  reset();
+}]);</code></pre>
+<p>第一引数がコントローラの名前になります。
+第二引数はアノテーション配列です。</p>
+<p>アノテーション配列の最後にはコンストラクタを含めます。</p>
+<p>AngularJS ではグローバルスコープに定義した関数も暗黙的にコントローラとして扱います。
+ただしこの方法は推奨されていません。
+必ず module.controller メソッドを使うようにしてください。</p>
+<h2>使う</h2>
+<p><code>ng-controller</code> ディレクティブを使用することでコントローラとビューを関連付けます。
+属性値にコントローラの名前を指定することでディレクティブが解決される時そのコントローラはインスタンス化されます。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"UserController"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span> <span class="attribute">ng-submit</span>=<span class="value">"addUser()"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"name"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"email"</span> <span class="attribute">ng-model</span>=<span class="value">"email"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"submit"</span> <span class="attribute">valuse</span>=<span class="value">"追加"</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">ul</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"user in users"</span>&gt;</span><span class="variable">{{ user.name }}</span> - <span class="variable">{{ user.email }}</span><span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+他にも <code>$route</code> サービスから初期化する方法もあります。
+</div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+v1.2.0 から <code>as propertyName</code> 構文がサポートされています。
+<code>as</code> の後に続くキーワードを $scope のプロパティとして作成しコンストラクタの <code>this</code> を代入します。
+この構文によりビューからコントローラのコンテキストに速やかにアクセスできます。
+</div>
+
+<div preview="article.examples.example" size="280"></div>
+

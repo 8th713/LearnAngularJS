@@ -1,0 +1,179 @@
+<p>先ほどのステップですべての機能がそろいアプリは完成しました。
+改めて完成したコードを眺めてみると MainController が扱うモデルが随分と増えてしまった気がします。</p>
+<p>この規模ならまだいいですが、より大規模なアプリケーションでこのような実装をしているとメンテナンスがしづらくなるのは明白です。</p>
+<p>この問題を解決するためコントローラをもう少し小さな単位で分割し、ひとつあたりが受け持つモデルの数を減らしましょう。</p>
+<h2>共有データ</h2>
+<p>$scope オブジェクトはプロトタイプ継承を利用した親子関係を持ちます。
+が、$scope オブジェクトの親子関係はビューに依存しているためコントローラが親子関係に依存するようなコード(親 $scope のモデルを参照するなど)は破綻する恐れがあります。
+そのためコントローラ間で共有する必要のあるデータはサービスとして実装します。</p>
+<p>ToDo アプリのコントローラは ToDo リストに対する操作がほとんどなので ToDo リストの管理を受け持つサービスを準備しましょう。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [])
+.service(<span class="string">'todos'</span>, [<span class="string">'$rootScope'</span>, <span class="string">'$filter'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($scope, $filter)</span> {</span>
+  <span class="keyword">var</span> list = []; <span class="comment">// ToDo リスト</span>
+
+  <span class="comment">// ToDo リストの変更を監視し 全 $scope に対して change:list イベントを発行する</span>
+  $scope.$watch(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">return</span> list;
+  }, <span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span>
+    $scope.$broadcast(<span class="string">'change:list'</span>, value);
+  }, <span class="literal">true</span>);
+
+  <span class="keyword">var</span> where = $filter(<span class="string">'filter'</span>);
+
+  <span class="keyword">var</span> done = { done: <span class="literal">true</span> };
+  <span class="keyword">var</span> remaining = { done: <span class="literal">false</span> };
+
+  <span class="comment">// リストが扱えるフィルタリング条件</span>
+  <span class="keyword">this</span>.filter = {
+    done: done,
+    remaining: remaining
+  };
+
+  <span class="comment">// 完了状態の ToDo のみを抽出して返す</span>
+  <span class="keyword">this</span>.getDone = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">return</span> where(list, done);
+  };
+
+  <span class="comment">// 要件を受け取り新しい ToDo をリストに加える</span>
+  <span class="keyword">this</span>.add = <span class="function"><span class="keyword">function</span> <span class="params">(title)</span> {</span>
+    list.push({
+      title: title,
+      done: <span class="literal">false</span>
+    });
+  };
+
+  <span class="comment">// 引数の ToDo をリストから取り除く</span>
+  <span class="keyword">this</span>.remove = <span class="function"><span class="keyword">function</span> <span class="params">(currentTodo)</span> {</span>
+    list = where(list, <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+      <span class="keyword">return</span> currentTodo !== todo;
+    });
+  };
+
+  <span class="comment">// 完了状態の ToDo をリストから取り除く</span>
+  <span class="keyword">this</span>.removeDone = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    list = where(list, remaining);
+  };
+
+  <span class="comment">// リスト内の ToDo すべての状態を引数に合わせる</span>
+  <span class="keyword">this</span>.changeState = <span class="function"><span class="keyword">function</span> <span class="params">(state)</span> {</span>
+    angular.forEach(list, <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+      todo.done = state;
+    });
+  };
+}])</code></pre>
+<p>ToDo リストに対する操作はすべて todos サービスに移譲しました。
+コントローラがリストを参照、操作したい場合、必ず todos サービスを経由することになります。</p>
+<p>また、ToDo リストの変更を監視しイベントを介して子孫 $scope へその変更を伝える役割も担います。
+コントローラは change:list イベントを購読することで最新のリストを取得可能になります。</p>
+<h2>コントローラの分割</h2>
+<p>一つのコントローラが受け持つモデルを減らすためコントローラを分割しましょう。</p>
+<p>今回は DOM に沿ってコントローラを以下の4つにわけます。</p>
+<ul>
+<li>新規 ToDo 作成、登録を受け持つ <strong>RegisterController</strong></li>
+<li>件数モデルとフィルタ切替や状態切替などのボタン類を受け持つ <strong>ToolbarController</strong></li>
+<li>ToDo リストと ToDo モデルの編集を受け持つ <strong>TodoListController</strong></li>
+<li>フィルタリング状態モデルを受け持つ <strong>MainController</strong></li>
+</ul>
+<h3>RegisterController</h3>
+<pre><code class="lang-javascript">.controller(<span class="string">'RegisterController'</span>, [<span class="string">'$scope'</span>, <span class="string">'todos'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($scope, todos)</span> {</span>
+  $scope.newTitle = <span class="string">''</span>;
+
+  $scope.addTodo = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    todos.add($scope.newTitle);
+    $scope.newTitle = <span class="string">''</span>;
+  };
+}])</code></pre>
+<p>RegisterController は ToDo 新規作成に必要なモデルだけを定義した単純なコントローラになりました。
+リストへの追加は todos.add に移譲されている点に注意してください。</p>
+<p>RegisterController は新規作成フォームの form 要素と結びつけます。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">ng-controller</span>=<span class="value">"RegisterController"</span>
+      <span class="attribute">ng-submit</span>=<span class="value">"addTodo()"</span>&gt;</span>
+  <span class="comment">&lt;!-- 省略--&gt;</span>
+<span class="tag">&lt;/<span class="title">form</span>&gt;</span></code></pre>
+<h3>ToolbarController</h3>
+<pre><code class="lang-javascript">.controller(<span class="string">'ToolbarController'</span>, [<span class="string">'$scope'</span>, <span class="string">'todos'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($scope, todos)</span> {</span>
+  $scope.filter = todos.filter;
+
+  $scope.$on(<span class="string">'change:list'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(evt, list)</span> {</span>
+    <span class="keyword">var</span> length = list.length;
+    <span class="keyword">var</span> doneCount = todos.getDone().length;
+
+    $scope.allCount = length;
+    $scope.doneCount = doneCount;
+    $scope.remainingCount = length - doneCount;
+  });
+
+  $scope.checkAll = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    todos.changeState(!!$scope.remainingCount);
+  };
+
+  $scope.changeFilter = <span class="function"><span class="keyword">function</span> <span class="params">(filter)</span> {</span>
+    $scope.$emit(<span class="string">'change:filter'</span>, filter);
+  };
+
+  $scope.removeDoneTodo = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    todos.removeDone();
+  };
+}])</code></pre>
+<p>ToolbarController は件数モデルと各ボタンがクリックされた時の振る舞いに集中します。</p>
+<p>change:list イベントにリスナーを登録しリスト更新時に最新のリストを得て件数モデルを作成します。</p>
+<p>changeFilter メソッドは change:filter イベントを発行し親 $scope に選択されたフィルタを伝えるように変更しました。</p>
+<p>ToolbarController はボタン類の親要素に結びつけます。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"ToolbarController"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"checkAll()"</span>&gt;</span>全て完了/未了<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="comment">&lt;!-- 省略--&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<h3>TodoListController</h3>
+<pre><code class="lang-javascript">.controller(<span class="string">'TodoListController'</span>, [<span class="string">'$scope'</span>, <span class="string">'todos'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($scope, todos)</span> {</span>
+  $scope.$on(<span class="string">'change:list'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(evt, list)</span> {</span>
+    $scope.todoList = list;
+  });
+
+  <span class="keyword">var</span> originalTitle;
+
+  $scope.editing = <span class="literal">null</span>;
+
+  $scope.editTodo = <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+    originalTitle = todo.title;
+    $scope.editing = todo;
+  };
+
+  $scope.doneEdit = <span class="function"><span class="keyword">function</span> <span class="params">(todoForm)</span> {</span>
+    <span class="keyword">if</span> (todoForm.$invalid) {
+      $scope.editing.title = originalTitle;
+    }
+    $scope.editing = originalTitle = <span class="literal">null</span>;
+  };
+
+  $scope.removeTodo = <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+    todos.remove(todo);
+  };
+}])</code></pre>
+<p>change:list イベントにリスナーを登録しリスト更新時に最新のリストを得て ToDo リストモデルを作成します。
+todos というモデル名はサービスと混同を招くので todoList にモデル名を変更しました。
+ビューの todos を参照していた部分も todoList に変更します。</p>
+<p>TodoListController はリストアイテムの親要素に結びつけます。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">ul</span> <span class="attribute">ng-controller</span>=<span class="value">"TodoListController"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span>
+      <span class="attribute">ng-repeat</span>=<span class="value">"todo in todoList | filter:currentFilter"</span>
+      <span class="attribute">ng-class</span>=<span class="value">"{done: todo.done, editing: todo == editing}"</span>&gt;</span>
+    <span class="comment">&lt;!-- 省略--&gt;</span>
+  <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">ul</span>&gt;</span></code></pre>
+<h3>MainController</h3>
+<pre><code class="lang-javascript">.controller(<span class="string">'MainController'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($scope)</span> {</span>
+  $scope.currentFilter = <span class="literal">null</span>;
+
+  $scope.$on(<span class="string">'change:filter'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(evt, filter)</span> {</span>
+    $scope.currentFilter = filter;
+  });
+}])</code></pre>
+<p>MainController はフィルタリング状態モデルを扱います。
+フィルタリング状態モデルはリスト要素(TodoListController の受け持ち)とフィルタ切り替えボタン(ToolbarController の受け持ち)の両方から参照できる位置に存在せねばなりません。</p>
+<p>それぞれのコントローラに全く同じ値を持つモデルを定義するのは無駄なので両方の要素を包含している MainController で定義します。</p>
+<p>フィルタ切り替えボタンは ToolbarController が受け持つため、値の最新状態は change:filter イベント経由で受け取るようにします。</p>
+<div preview="article.examples.example"></div>
+
+<h2>完成</h2>
+<p>以上でチュートリアルは終了です。</p>
+

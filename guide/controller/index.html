@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../assets/css/example.css">
+</head>
+<body ng-app="Example">
+  <div class="location-bar"></div>
+  <div class="container">
+    <div class="row" ng-controller="UserController">
+      <div class="col-sm-6">
+        <form class="form-horizontal" ng-submit="addUser()">
+          <div class="form-group">
+            <label class="col-xs-3 control-label">Name</label>
+            <div class="col-xs-9">
+              <input type="text" class="form-control" ng-model="name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-3 control-label">Email</label>
+            <div class="col-xs-9">
+              <input type="email" class="form-control" ng-model="email">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-xs-3"></div>
+            <div class="col-xs-9">
+              <button type="submit" class="btn btn-default">追加</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="col-sm-6">
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="user in users">{{ user.name }} - {{ user.email }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../components/angular/angular.min.js"></script>
+  <script src="../../assets/js/location.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

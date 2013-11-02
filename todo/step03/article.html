@@ -1,0 +1,72 @@
+<p>コントローラーを作成しモデルを定義しましょう。
+また、定義したモデルをビューから参照してみましょう。</p>
+<h2>コントローラを作成する</h2>
+<p>AngularJS でモデルを定義するには新しい $scope オブジェクトが必要になります。
+新しい $scope オブジェクトを作成するにはコントローラが必要です。</p>
+<p>module オブジェクトの contoroller メソッドを使用してコントローラを作成しましょう。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [])
+.controller(<span class="string">'MainController'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($scope)</span> {</span>}]);</code></pre>
+<p>コントローラのコンストラクタが $scope オブジェクトを受け取れるように依存の注釈をつけるのを忘れないでください。</p>
+<h2>ビューが $scope を参照できるようにする</h2>
+<p>AngularJS でのモデルは $scope オブジェクトのプロパティに代入されたオブジェクト(とプリミティブ)ですのでビューが $scope オブジェクトのプロパティを参照できるようにする必要があります。</p>
+<p>DOM に参照可能な $scope オブジェクトを知らせるために <a href="http://docs.angularjs.org/api/ng.directive:ngController">ngController ディレクティブ</a>を使用します。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"MainController"</span>&gt;</span>
+  <span class="comment">&lt;!-- ここに先ほど作ったモックアップ --&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<p>先ほど作ったモックアップを包む要素を作成し ngController ディレクティブの使用を宣言します。
+属性値に参照したい $scope オブジェクトを持ったコントローラの名前を設定します。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+デザイン上ワッパーが必要ないなら body 要素に対して ngController ディレクティブを使用しても構いません。
+</div>
+
+<h2>モデルを定義する</h2>
+<p>実装を始める前にアプリケーションが必要としているデータをおさらいします。</p>
+<ul>
+<li><strong>ToDo</strong> - 任意の要件と、完了もしくは未完了の状態を持つデータ<ul>
+<li><code>todo = {title: &#39;要件&#39;, done: &#39;状態&#39;}</code> とします。</li>
+</ul>
+</li>
+<li><strong>ToDo リスト</strong> - 複数のToDoを持つデータ</li>
+</ul>
+<p>さらに今回は新しい ToDo を作成しリストに加えるビジネスロジックも必要です。</p>
+<p>まずは ToDo のリストを用意しましょう。</p>
+<pre><code class="lang-javascript">$scope.todos = [];</code></pre>
+<p>ビューから参照できるのは $scope オブジェクトのプロパティだけなので todos プロパティに空の配列を設定します。</p>
+<p>次は新しい ToDo を作成しリストに加えるビジネスロジックを実装しましょう。</p>
+<pre><code class="lang-javascript">$scope.addTodo = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.todos.push({
+    title: Math.random(),
+    done: <span class="literal">false</span>
+  });
+};</code></pre>
+<p>新しい ToDo なので状態は未完了でいいでしょう。
+要件は仮値としてランダムな数値が入るようにでもしておきましょう。</p>
+<h2>ビューからモデルを参照する</h2>
+<p>フォームが送信された時 addTodo が実行されるようにしましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">ng-submit</span>=<span class="value">"addTodo()"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">placeholder</span>=<span class="value">"新しい要件を入力"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"submit"</span>&gt;</span>追加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">form</span>&gt;</span></code></pre>
+<p>form 要素に対して <a href="http://docs.angularjs.org/api/ng.directive:ngSubmit">ngSubmit ディレクティブ</a>の使用を宣言します。
+ngSubmit ディレクティブはサブミットイベント発生時に属性値の式を直近の $scope オブジェクトで評価してくれます。</p>
+<p>これでフォームが送信された時 addTodo が実行され新しい ToDo がリストに追加されます。</p>
+<p>続いて ToDo リストを表示してみましょう。
+とりあえず未完了状態の ToDo のモックアップを編集して表示に使いましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span> <span class="attribute">ng-repeat</span>=<span class="value">"todo in todos"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"checkbox"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span>&gt;</span><span class="variable">{{ todo.title }}</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"reset"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">li</span>&gt;</span></code></pre>
+<p>li 要素に対して <a href="http://docs.angularjs.org/api/ng.directive:ngRepeat">ngRepeat ディレクティブ</a>の使用を宣言します。
+ngRepeat ディレクティブは JavaScript の for...in のような、コレクションを列挙する特別な構文を受け取り DOM を複製するディレクティブです。 また、このディレクティブは複製された DOM に新たな $scope オブジェクトを結びつけます。</p>
+<p>$scope オブジェクトはキーワードとなった名前のプロパティ(上記例では todo)を持ちそこには配列の各要素が代入されます。
+つまり li 要素の以下の要素は個々の ToDo モデルにアクセス可能ということです。</p>
+<p>本当に ToDo モデルにアクセス可能か確認するためテンプレート構文 <code>{{ }}</code> を使って ToDo モデルの要件を出力してみましょう。</p>
+<p>ついでなので ToDo の総数も表示できるよう該当箇所を編集しましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">class</span>=<span class="value">"active"</span>&gt;</span>全部 <span class="tag">&lt;<span class="title">span</span>&gt;</span><span class="variable">{{ todos.length }}</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span></code></pre>
+<p>プレビューで実際に動く様子を確認してみましょう。</p>
+<div preview="article.examples.example"></div>
+

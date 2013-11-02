@@ -1,0 +1,138 @@
+<h2>役割</h2>
+<p>$scope オブジェクトは以下の役割を果たすために使用されるものです。</p>
+<ul>
+<li>ビューにバインドしたいデータモデルを定義する場所。</li>
+<li>自身のプロパティ（つまりデータモデル）に変更があった時ビューにそれを伝える。</li>
+<li>ビューが式を評価する際のコンテキストの提供（つまりビューのグローバルスコープ）。</li>
+<li>イベントの発行とイベントリスナーの登録</li>
+</ul>
+<h2>コントローラやビューとの関係</h2>
+<p>$scope はコントローラやディレクティブとビューの橋渡しを行います。
+ビューは $scope を参照しデータをバインドしていきます。
+コントローラやディレクティブがデータモデルを変更した時 $scope はその変更をビューに伝えてくれます。
+変更を受け取ったビューは自動的に表示を更新します。</p>
+<p>この仕組のためコントローラーはビューを全く意識せずにビジネスロジックのみに集中できます。</p>
+<h2>ビューへの変更通知</h2>
+<p>AngularJS ではほとんどの場合においてビューへの変更通知を手動で行う必要がありません。
+手動で変更通知を行わなければいけない場合の代表例は以下のとおりです。</p>
+<ul>
+<li>ディレクティブを通さずにアタッチした DOM イベントのリスナー内</li>
+<li>タイマーや XMLHttpRequest などの非同期処理のコールバック内</li>
+</ul>
+<p>手動で更新通知を行うための手段として $scope.$apply メソッドが提供されています。</p>
+<pre><code class="lang-javascript">$scope.foo = <span class="literal">false</span>;
+
+setTimeout(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.foo = <span class="literal">true</span>;
+  $scope.$apply();
+}, <span class="number">1000</span>);
+<span class="comment">// or</span>
+setTimeout(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="comment">// こちらのほうがベター</span>
+  $scope.$apply(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    $scope.foo = <span class="literal">true</span>;
+  });
+}, <span class="number">1000</span>);</code></pre>
+<p>タイマーは $timeout サービスを、 XMLHttpRequest は $http サービスを使うことで更新を自動化できます。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+デバッガや console API でスタックトレースを調べて $scope.$apply が呼び出されているかどうかを確認することで手動更新が必要かどうかを判別することができます。
+</div>
+
+<h2>階層構造と継承</h2>
+<p>$scope は親子関係を持っており小スコープは親スコープのプロパティをプロトタイプ継承します。</p>
+<p>アプリケーションははじめ $rootScope だけを持っています。
+いくつかのディレクティブは 新規に $scope を作成するのでアプリケーションは複数の $scope を持つことになります。
+新規の $scope は親 $scope の子となり DOM の構造に従ったツリー構造になります。</p>
+<p>ビューが式を評価する時、直近の $scope のプロパティに値が発見できなかったら $rootScope に到達するまで親スコープのプロパティをたどります。</p>
+<h2>イベント</h2>
+<p>$scope はイベントの発行とイベントリスナーの管理も行います。
+イベントはいくつかのディレクティブやサービスが $scope を使って発行したりします。
+もちろん自分でカスタムイベントを発行することもできます。</p>
+<pre><code class="lang-javascript"><span class="comment">// イベントリスナーの登録</span>
+$scope.$on(<span class="string">'eventName'</span>, eventListener);
+
+<span class="comment">// イベント発行</span>
+<span class="comment">// 親スコープに伝搬する</span>
+$scope.$emit(<span class="string">'eventName'</span>, passingData, ...);
+
+<span class="comment">// 小スコープに伝搬する</span>
+$scope.$broadcast(<span class="string">'eventName'</span>, passingData, ...);</code></pre>
+<div preview="article.examples.demo1" size="150"></div>
+
+<h2>変更時にコールバックを実行する</h2>
+<p>ビューに変更が通知される時、特定のプロパティの値が変わっていたら追加の処理を行ないたい場合があります。</p>
+<p>$scope.$watch メソッドを使うと値が変化していた時に任意の関数を実行する事ができます。</p>
+<pre><code class="lang-javascript">$scope.name = <span class="string">'Alice'</span>;
+$scope.$watch(<span class="string">'name'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue, scope)</span> {</span>
+  console.log(scope === $scope);
+  console.log(<span class="string">'name は %s から %s に変更されました'</span>, oldValue, newValue);
+});
+
+$scope.name = <span class="string">'Bob'</span>;
+$scope.$apply(); <span class="comment">// 更新を通知</span>
+<span class="comment">// =&gt; true</span>
+<span class="comment">// =&gt; name は Alice から Bob に変更されました</span></code></pre>
+<p>第一引数に文字列を渡すと $scope のそのプロパティの変更を監視します。
+コールバックが実行されるのはビューに変更が通知される直前で監視中のプロパティの値が変更されていたときのみです。</p>
+<p>第一引数に関数を渡すことで $scope オブジェクトのプロパティ以外の変更も監視できます。</p>
+<pre><code class="lang-javascript"><span class="keyword">var</span> bool;
+$scope.$watch(<span class="keyword">function</span>() {
+  <span class="keyword">return</span> bool;
+}, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>
+  $scope.value = newValue;
+});
+
+bool = <span class="literal">true</span>;
+$scope.$apply();</code></pre>
+<p>注意点として変更とはプロパティへの代入だということです。
+以下の例は期待通りに動きません。</p>
+<pre><code class="lang-javascript">$scope.arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+$scope.$watch(<span class="string">'arr'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>});
+$scope.arr.push(<span class="number">4</span>);
+
+$scope.obj = {value1: <span class="number">1</span>};
+$scope.$watch(<span class="string">'obj'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>});
+$scope.obj.value2 = <span class="number">2</span>;
+
+$scope.$apply();</code></pre>
+<p>上記例ではコールバックが受け取る newValue と oldValue は参照が同じなので <code>newValue === oldValue</code> が成り立ちます。
+つまりプロパティは変更されていないということになります。</p>
+<p>この変更を監視したい場合は $watchCollection メソッドを使います。</p>
+<pre><code class="lang-javascript">$scope.arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+$scope.$watchCollection(<span class="string">'arr'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>
+  console.log(newValue);
+  <span class="comment">// =&gt; [1, 2, 3, 4]</span>
+});
+$scope.arr.push(<span class="number">4</span>);
+
+$scope.obj = {value1: <span class="number">1</span>};
+$scope.$watchCollection(<span class="string">'obj'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>
+  console.log(newValue);
+  <span class="comment">// =&gt; {value1: 1, value2: 2}</span>
+});
+$scope.obj.value2 = <span class="number">2</span>;
+
+$scope.$apply();</code></pre>
+<p>配列の要素やオブジェクトのプロパティの値に変更があった場合を監視したい時は以下のようにします。</p>
+<pre><code class="lang-javascript">$scope.list = [
+  {value: <span class="literal">false</span>}
+];
+
+$scope.$watch(<span class="string">'list'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>
+  <span class="comment">// 実行されない</span>
+});
+
+$scope.$watch(<span class="string">'list'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>
+  <span class="comment">// 実行される</span>
+}, <span class="literal">true</span>); <span class="comment">// 第三引数に true を渡す</span>
+
+$scope.$watchCollection(<span class="string">'list'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(newValue, oldValue)</span> {</span>
+  <span class="comment">// 実行されない</span>
+});
+
+$scope.list[<span class="number">0</span>].value = <span class="literal">true</span>;
+$scope.$apply();</code></pre>
+<p>第三引数を設定することで比較の仕方を参照の比較から各値を個別に比較するようになります。</p>
+<div preview="article.examples.demo2"></div>
+

@@ -1,0 +1,188 @@
+<div class="alert alert-warning">
+<strong>Warning:</strong>
+このページに登場するコードはあくまで仕組みを説明するための仮定のコードです。
+AngularJS の実際の実装とは違いますので注意してください。
+</div>
+
+<h2>問題</h2>
+<pre><code class="lang-javascript"><span class="function"><span class="keyword">function</span> <span class="title">invoke</span><span class="params">(callback)</span> {</span>
+  <span class="keyword">var</span> obj = {
+    foo: <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>},
+    bar: {}
+  };
+
+  callback();
+}
+
+<span class="function"><span class="keyword">function</span> <span class="title">func1</span><span class="params">(foo)</span> {</span>
+  foo();
+}
+
+<span class="function"><span class="keyword">function</span> <span class="title">func2</span><span class="params">(bar)</span> {</span>
+  bar.name = <span class="string">'Alice'</span>;
+}</code></pre>
+<p>invoke が持っている obj.foo に依存した func1 と obj.bar に依存した func2 を作成しました。</p>
+<p><code>invoke(func1)</code> を実行するとどうなるでしょう。
+func1は foo を呼び出せず例外を送出するでしょう。</p>
+<p><code>invoke(func2)</code> を実行した場合はどうでしょう。
+func2は bar.name を作成できず例外を送出するでしょう。</p>
+<p>invoke は callback が特定のオブジェクトを必要としていることを何らかの手段で取得し適切な引数を渡す必要があります。</p>
+<p>上記のコードは AngularJS とは直接関係ありませんが同じ問題は AngularJS を使う上でしばしば起こります。
+ある関数が特定のオブジェクトに依存している場合 AngularJS は一体どのように解決するのでしょう。</p>
+<h2>依存関係の注釈をつける</h2>
+<p>AngularJS ではこの問題を依存関係の注釈をつけることで解決しています。
+AngularJS で実際に使える依存関係の注釈法を見ていきましょう。</p>
+<h3>1. 仮引数の名前を注釈とする</h3>
+<p>仮引数の名前が実際に必要としているオブジェクトと同名の変数だと仮定します。</p>
+<pre><code class="lang-javascript"><span class="function"><span class="keyword">function</span> <span class="title">invoke</span><span class="params">(callback)</span> {</span>
+  <span class="keyword">var</span> obj = {
+    foo: <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>},
+    bar: {}
+  };
+
+  <span class="comment">// getAnnotations(function(x){}) =&gt; ['x']</span>
+  <span class="comment">// getAnnotations(function(x, y){}) =&gt; ['x', 'y']</span>
+  <span class="keyword">var</span> annotations = getAnnotations(callback);
+
+  <span class="comment">// ['foo'] =&gt; [obj.foo]</span>
+  <span class="comment">// ['foo', 'bar'] =&gt; [obj.foo, obj.bar]</span>
+  <span class="keyword">var</span> injectables = annotations.map(<span class="keyword">function</span>(name) {
+    <span class="keyword">return</span> obj[name];
+  });
+
+  callback.apply(<span class="literal">null</span>, injectables);
+}</code></pre>
+<p>getAnnotations は callback.toString で関数を文字列化し仮引数部分を抽出し配列として返します。
+getAnnotations の 戻り値 annotations を利用して依存オブジェクトを取り出します。
+injectables は callback が必要としているオブジェクトを順番通りに格納した配列になりました。
+最終的に invoke は injectables を使って callback を正しく実行することができました。</p>
+<p>ただし、このやり方には重大な欠点が存在します。
+もしコードを圧縮、難読化した場合どうなるでしょう。</p>
+<pre><code class="lang-javascript"><span class="function"><span class="keyword">function</span> <span class="title">a</span><span class="params">(b)</span> {</span>
+  b();
+}
+
+<span class="function"><span class="keyword">function</span> <span class="title">c</span><span class="params">(d)</span> {</span>
+  d.name = <span class="string">'Alice'</span>;
+}
+<span class="comment">// 可読性のためインデントと改行はそのまま</span></code></pre>
+<p>おそらく難読化ツールはこんな感じにコードを変換するでしょう。
+仮引数の名前が変更されたので必要としているオブジェクトの情報は失われてしまいました。
+注釈として利用できるものがなくなったので依存を解決することができません。</p>
+<h3>2. $inject プロパティを注釈とする</h3>
+<p>依存しているオブジェクトの名前を列挙した注釈配列を作成し関数の $inject プロパティにセットします。</p>
+<pre><code class="lang-javascript"><span class="function"><span class="keyword">function</span> <span class="title">invoke</span><span class="params">(callback)</span> {</span>
+  <span class="keyword">var</span> obj = {
+    foo: <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>},
+    bar: {}
+  };
+  <span class="keyword">var</span> annotations;
+
+  <span class="keyword">if</span> (callback.$inject) {
+    annotations = callback.$inject;
+  } <span class="keyword">else</span> {
+    annotations = getAnnotations(callback);
+  }
+
+  <span class="keyword">var</span> injectables = annotations.map(<span class="keyword">function</span>(name) {
+    <span class="keyword">return</span> obj[name];
+  });
+
+
+  callback.apply(<span class="literal">null</span>, injectables);
+}
+
+<span class="function"><span class="keyword">function</span> <span class="title">a</span><span class="params">(b)</span> {</span>
+  b();
+}
+a.$inject = [<span class="string">'foo'</span>];
+
+<span class="function"><span class="keyword">function</span> <span class="title">c</span><span class="params">(d)</span> {</span>
+  d.name = <span class="string">'Alice'</span>;
+}
+b.$inject = [<span class="string">'bar'</span>];</code></pre>
+<p>callback.$inject が存在していたらそれを annotations とすることにします。
+これで仮引数を変更しても注釈は失われずに無事依存を解決できました。</p>
+<p>依存関係を注釈する $inject プロパティのお陰で難読化されても問題が起きないばかりか仮引数を自分の好きな名前に変えることまでできるようになりました。</p>
+<p>しかしちょっと待ってください。
+関数を受け取るメソッドを使うなら引数部分に直接関数定義を書きたくなるのが普通です。</p>
+<pre><code class="lang-javascript">invoke(<span class="function"><span class="keyword">function</span> <span class="params">(b)</span> {</span>
+  b();
+});</code></pre>
+<p>$inject プロパティを作るとなるとこのような書き方ができなくなります。</p>
+<h3>3. 注釈配列に実行関数を含めてしまう</h3>
+<p>invoke は配列も受け取り可能です。</p>
+<pre><code class="lang-javascript"><span class="function"><span class="keyword">function</span> <span class="title">invoke</span><span class="params">(callback)</span> {</span>
+  <span class="keyword">var</span> obj = {
+    foo: <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>},
+    bar: {}
+  };
+  <span class="keyword">var</span> annotations;
+
+  <span class="keyword">if</span> (isArray(callback)) {
+    annotations = callback.slice(<span class="number">0</span>, -<span class="number">1</span>);
+    callback = callback[callback.length - <span class="number">1</span>];
+  } <span class="keyword">else</span> <span class="keyword">if</span> (callback.$inject) {
+    annotations = callback.$inject;
+  } <span class="keyword">else</span> {
+    annotations = getAnnotations(callback);
+  }
+
+  <span class="keyword">var</span> injectables = annotations.map(<span class="keyword">function</span>(name) {
+    <span class="keyword">return</span> obj[name];
+  });
+
+  callback.apply(<span class="literal">null</span>, injectables);
+}</code></pre>
+<p>もし callback が配列だったら最後の要素を実行する関数、残りの要素を annotations とすることにします。
+結果的に invoke は下記のようにも使えるようになりました。</p>
+<pre><code class="lang-javascript">invoke([<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="title">a</span><span class="params">(b)</span> {</span>
+  b();
+}]);
+
+invoke([<span class="string">'bar'</span>, <span class="function"><span class="keyword">function</span> <span class="title">c</span><span class="params">(d)</span> {</span>
+  d.name = <span class="string">'Alice'</span>;
+}]);</code></pre>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+このような注釈を列挙し最後に関数を持った配列をこのサイトではアノテーション配列と読んでいます。
+</div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+このサイトでは依存解決は全てこの手段で行なっています。説明上「アノテーション配列を受け取る」などと書かれている場合、上記説明のとおり関数も受け取り可能です。
+</div>
+
+<h2>まとめ</h2>
+<p>AngularJS では様々な場面で依存解決を求められます。
+AngularJS は注釈を用いることで依存を解決します。</p>
+<p>注釈として使えるものは</p>
+<ol>
+<li>仮引数の名前</li>
+<li>$inject プロパティ</li>
+<li>アノテーション配列</li>
+</ol>
+<p>の三種類です。</p>
+<p>但し 1 は推奨されない手段です。
+必ず 2 か 3 の方法を使いましょう。</p>
+<h3>注釈を利用したコードの一例</h3>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [])
+.config([<span class="string">'$interpolateProvider'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($interpolateProvider)</span> {</span>
+  $interpolateProvider
+    .startSymbol(<span class="string">'{['</span>)
+    .endSymbol(<span class="string">']}'</span>);
+}])
+.factory(<span class="string">'getData'</span>, [<span class="string">'$http'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(http)</span> {</span>
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">return</span> http.get(<span class="string">'/data.json'</span>);
+  };
+}])
+.controller(<span class="string">'Ctrl'</span>, [<span class="string">'$scope'</span>, <span class="string">'getData'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(scope, getData)</span> {</span>
+  scope.name = <span class="string">'Alice'</span>;
+  getData().success(<span class="function"><span class="keyword">function</span> <span class="params">(data)</span> {</span>
+    scope.data = data;
+  });
+}])</code></pre>
+<p>全てアノテーション配列で注釈しています。
+もちろんアノテーション配列を渡している部分は全て関数も受け取ることができます。</p>
+

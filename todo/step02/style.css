@@ -1,0 +1,8 @@
+/* example.css より一部抜粋 */
+.todo-item .todo-title {
+  color: #888;
+}
+
+.done .todo-title {
+  text-decoration: line-through;
+}

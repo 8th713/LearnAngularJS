@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>帳票アプリ</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../assets/css/example.css">
+</head>
+<body ng-app="App">
+  <div class="location-bar"></div>
+
+  <!-- Header Nav -->
+  <header class="container">
+    <nav class="navbar navbar-default">
+      <div class="navbar-header">
+        <a href="./" class="navbar-brand">帳票アプリ</a>
+      </div>
+      <div class="navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#/">帳票一覧</a></li>
+          <li><a href="#/new">帳票作成</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+  <!-- Header Nav End -->
+
+  <div class="container" ng-view></div>
+
+  <!-- Template Start -->
+  <script type="text/ng-template" id="index-tmpl">
+    <h1>帳票一覧</h1>
+    <ul ng-show="list">
+      <li ng-repeat="sheet in list">
+        #{{ sheet.id }}
+        {{ sheet.createdAt | date:'yyyy/MM/dd HH:mm' }}
+        <a ng-href="#/sheet/{{ sheet.id }}">詳細を確認する</a>
+      </li>
+    </ul>
+    <div class="alert alert-info"
+         ng-hide="list">
+      帳票が存在しません。
+      <a href="#/new" class="alert-link">新しい帳票を作る</a>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="new-tmpl">
+    <h1>帳票作成</h1>
+    <form novalidate
+          name="sheetForm"
+          ng-submit="save()">
+      <table class="table">
+        <colgroup></colgroup>
+        <colgroup span="3" class="col-sm"></colgroup>
+        <colgroup></colgroup>
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>単価</th>
+            <th>個数</th>
+            <th>小計</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="orderLine in lines">
+            <td><input class="form-control"
+                       type="text" required
+                       ng-model="orderLine.productName"></td>
+            <td><input class="form-control"
+                       type="number" required min="0"
+                       ng-pattern="integer"
+                       ng-model="orderLine.unitPrice"></td>
+            <td><input class="form-control"
+                       type="number" required min="0"
+                       ng-pattern="integer"
+                       ng-model="orderLine.count"></td>
+            <td>{{ getSubtotal(orderLine) | number }}</td>
+            <td><button class="btn btn-default btn-block"
+                        type="button"
+                        ng-disabled="disabledDelBtn"
+                        ng-click="removeLine(orderLine)">削除</button></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">合計:</td>
+            <td colspan="2">{{ getTotalAmount(lines) | number }}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="alert alert-danger" ng-show="sheetForm.$invalid">
+        <span ng-show="sheetForm.$error.required">空欄が存在しています。</span>
+        <span ng-show="sheetForm.$error.min">単価、個数の最小値は 0 です。</span>
+        <span ng-show="sheetForm.$error.pattern">単価、個数は整数で指定してください。</span>
+      </div>
+      <div>
+        <button class="btn btn-primary" type="button"
+                ng-click="addLine()">明細行を追加</button>
+        <button class="btn btn-danger"  type="button"
+                ng-click="initialize()">帳票を初期化</button>
+        <button class="btn btn-success" type="submit"
+                ng-disabled="sheetForm.$invalid">帳票を保存</button>
+      </div>
+    </form>
+  </script>
+
+  <script type="text/ng-template" id="sheet-tmpl">
+    <div ng-show="lines">
+      <h1>帳票詳細 #{{ id }}</h1>
+      <p>作成日時: {{ createdAt | date:'yyyy/MM/dd HH:mm' }}</p>
+      <table class="table">
+        <colgroup span="4" class="col-md"></colgroup>
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>単価</th>
+            <th>個数</th>
+            <th>小計</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="orderLine in lines">
+            <td>{{ orderLine.productName }}</td>
+            <td>{{ orderLine.unitPrice | number }}</td>
+            <td>{{ orderLine.count | number }}</td>
+            <td>{{ getSubtotal(orderLine) | number }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">合計:</td>
+            <td>{{ getTotalAmount(lines) | number }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="alert alert-danger" ng-hide="lines">
+      存在しない帳票を参照しています。
+      <a href="#/new" class="alert-link">新しい帳票を作る</a>
+    </div>
+  </script>
+  <!-- Template End -->
+
+  <script src="../../components/angular/angular.min.js"></script>
+  <script src="../../components/angular-route/angular-route.min.js"></script>
+  <script src="../../assets/js/location.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

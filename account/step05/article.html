@@ -1,0 +1,104 @@
+<p>前回のステップまででルート訪問時に使用されるテンプレートとコントローラの準備が整いました。</p>
+<p>次は CreationController を編集して帳票作成ページで必要なモデルを定義していきましょう。</p>
+<h2>帳票作成ページで必要なものをおさらいする</h2>
+<p>実装を始める前に必要なものを再確認しましょう。</p>
+<ul>
+<li>データ<ul>
+<li>注文明細行のリスト</li>
+<li>個別の注文明細行 - リストの要素</li>
+</ul>
+</li>
+<li>ビジネスロジック<ul>
+<li>任意の明細行から小計を計算する機能</li>
+<li>リストモデル内の明細行の合計金額を計算する機能</li>
+<li>リストモデルに新しい明細行を追加する機能</li>
+<li>任意の明細行をリストモデルから取り除く機能</li>
+<li>リストモデルを初期化する機能</li>
+<li>リストモデルから帳票モデルを作成して保存する機能</li>
+</ul>
+</li>
+</ul>
+<h2>データを準備する</h2>
+<p>まずデータの準備から始めましょう。</p>
+<pre><code class="lang-javascript">.controller(<span class="string">'CreationController'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span> <span class="title">CreationController</span><span class="params">($scope)</span> {</span>
+  <span class="comment">// 新しい明細行を作成する</span>
+  <span class="function"><span class="keyword">function</span> <span class="title">createOrderLine</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> {
+      productName: <span class="string">''</span>,
+      unitPrice: <span class="number">0</span>,
+      count: <span class="number">0</span>
+    };
+  }
+
+  $scope.lines = [createOrderLine()]; <span class="comment">// 明細行リスト</span>
+}])</code></pre>
+<p>モデルは $scope オブジェクトのプロパティとして定義する必要があるので依存の注釈付けを行いコンストラクタが $scope オブジェクトを受け取れるようにします。</p>
+<p>明細行は行を追加する処理などで作成される必要があるので createOrderLine 関数を準備しておきます。
+新しい明細行が必要なときはこの関数を実行して取得することにします。</p>
+<p>明細行リストは初期状態で明細行を一つ持っているようにしたいので createOrderLine 関数を使って配列にひとつ要素を加えておきます。</p>
+<h2>データを表示する</h2>
+<p>テンプレートを編集して lines モデルが表示されるようにしましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">tr</span> <span class="attribute">ng-repeat</span>=<span class="value">"orderLine in lines"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span>   <span class="attribute">ng-model</span>=<span class="value">"orderLine.productName"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span> <span class="attribute">ng-model</span>=<span class="value">"orderLine.unitPrice"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span> <span class="attribute">ng-model</span>=<span class="value">"orderLine.count"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">td</span>&gt;</span>n,nnn<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">tr</span>&gt;</span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.directive:ngRepeat">ngRepeat ディレクティブ</a>を使い tr 要素を lines モデルの長さ分だけ反復させます。
+各 input 要素と明細行のプロパティが双方向に結びつくよう <a href="http://docs.angularjs.org/api/ng.directive:ngModel">ngModel ディレクティブ</a>を使用します。</p>
+<h2>振る舞いを加える</h2>
+<p>リストに行を追加する機能や任意の行を削除する機能などの振る舞いを実装しビューから呼び出してみましょう。</p>
+<pre><code class="lang-javascript"><span class="comment">// リストモデルに新しい明細行を追加する</span>
+$scope.addLine = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.lines.push(createOrderLine());
+};
+
+<span class="comment">// リストモデルを初期化する</span>
+$scope.initialize = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.lines = [createOrderLine()];
+};
+
+<span class="comment">// リストモデルから帳票モデルを作成して保存</span>
+$scope.save = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>};
+
+<span class="comment">// 任意の明細行をリストモデルから取り除く</span>
+$scope.removeLine = <span class="function"><span class="keyword">function</span> <span class="params">(target)</span> {</span>
+  <span class="keyword">var</span> lines = $scope.lines;
+  <span class="keyword">var</span> index = lines.indexOf(target);
+
+  <span class="keyword">if</span> (index !==  -<span class="number">1</span>) {
+    lines.splice(index, <span class="number">1</span>);
+  }
+};</code></pre>
+<p>save メソッドについてはまだ帳票の保存先を用意していないため、後回しにしておきます。</p>
+<p>テンプレートも合わせて編集しましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">ng-click</span>=<span class="value">"addLine()"</span>&gt;</span>明細行を追加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">ng-click</span>=<span class="value">"initialize()"</span>&gt;</span>帳票を初期化<span class="tag">&lt;/<span class="title">button</span>&gt;</span></code></pre>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">ng-click</span>=<span class="value">"removeLine(orderLine)"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span></code></pre>
+<p>button 要素に対して <a href="http://docs.angularjs.org/api/ng.directive:ngClick">ngClick ディレクティブ</a>を使い振る舞いを実行するようにします。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">ng-submit</span>=<span class="value">"save()"</span>&gt;</span></code></pre>
+<p>form 要素には <a href="http://docs.angularjs.org/api/ng.directive:ngSubmit">ngSubmit ディレクティブ</a>を使用します。</p>
+<h2>小計、合計を表示する</h2>
+<p>小計と合計を算出し出力されるようにしましょう。</p>
+<pre><code class="lang-javascript"><span class="comment">// 引数から小計を計算して返す</span>
+$scope.getSubtotal = <span class="function"><span class="keyword">function</span> <span class="params">(orderLine)</span> {</span>
+  <span class="keyword">return</span> orderLine.unitPrice * orderLine.count;
+};
+
+<span class="comment">// リストから合計金額を計算して返す</span>
+$scope.getTotalAmount = <span class="function"><span class="keyword">function</span> <span class="params">(lines)</span> {</span>
+  <span class="keyword">var</span> totalAmount = <span class="number">0</span>;
+
+  angular.forEach(lines, <span class="function"><span class="keyword">function</span> <span class="params">(orderLine)</span> {</span>
+    totalAmount += $scope.getSubtotal(orderLine);
+  });
+
+  <span class="keyword">return</span> totalAmount;
+};</code></pre>
+<p>テンプレートは以下のとおりです。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="variable">{{ getSubtotal(orderLine) | number }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span></code></pre>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">td</span> <span class="attribute">colspan</span>=<span class="value">"2"</span>&gt;</span><span class="variable">{{ getTotalAmount(lines) | number }}</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.filter:number">number フィルタ</a>を使用して桁区切りで表示されるようにします。</p>
+<div preview="article.examples.example" hash="/new"></div>
+

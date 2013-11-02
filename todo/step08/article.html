@@ -1,0 +1,26 @@
+<p>残っているビジネスロジックは全て今まで使ってきた機能だけで実装できます。</p>
+<pre><code class="lang-javascript"><span class="comment">// 全て完了/未了</span>
+$scope.checkAll = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">var</span> state = !!$scope.remainingCount; <span class="comment">// 未了にするのか完了にするのかの判定</span>
+
+  angular.forEach($scope.todos, <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+    todo.done = state;
+  });
+};
+
+<span class="comment">// 完了した ToDo を全て削除</span>
+$scope.removeDoneTodo = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.todos = where($scope.todos, $scope.filter.remaining);
+};
+
+<span class="comment">// 任意の ToDo を削除</span>
+$scope.removeTodo = <span class="function"><span class="keyword">function</span> <span class="params">(currentTodo)</span> {</span>
+  $scope.todos = where($scope.todos, <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+    <span class="keyword">return</span> currentTodo !== todo;
+  });
+};</code></pre>
+<p>それぞれの関数を ngClick ディレクティブでボタンと結びつければ完了です。</p>
+<p>removeTodo メソッド内で where 関数に対して関数を渡している点に注意してください。
+これは単純に関数の戻り値が true の要素だけを抽出する処理です。</p>
+<div preview="article.examples.example"></div>
+

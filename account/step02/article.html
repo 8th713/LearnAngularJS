@@ -1,0 +1,119 @@
+<p>今回作成するのは3つのビューを持ったアプリケーションです。
+それぞれのビューで使用するテンプレートを準備しましょう。</p>
+<h2>テンプレートの基礎</h2>
+<p>テンプレートは専用の html ファイルを用意するか script 要素内に記述します。</p>
+<p>script 要素をテンプレートとして使用する場合 type 属性に <code>text/ng-template</code> を指定します。
+適切な属性を付与することでその要素内の記述を、外部ファイルのように扱ってくれます。</p>
+<p>1つの script 要素が外部ファイルの1つ分に相当するため script 要素には外部ファイルの url に相当する情報も持たせる必要があります。
+URL に相当する情報は要素の <code>id</code> 要素に指定します。</p>
+<div class="alert alert-warning">
+<strong>Warning:</strong>
+テンプレートとして使用される <code>script</code> 要素の <code>id</code> は URL に見立てられるものなので <code>/templates/index.html</code> のような URL 風の値にしても構いません(公式リファレンスはそういう使い方をしています)。
+ただし HTML 4.01 で <code>id</code> 要素の値として使用できる記号は <code>-</code> <code>_</code> <code>:</code> <code>.</code> だけですので注意が必要です。
+HTML 5 では空白文字を禁止する制限以外に言及がないので <code>/</code> も使えるはずです。
+互換性などを考慮する場合 <code>-</code> <code>_</code> 以外の記号を使うのはやめたほうがいいかもしれません。
+</div>
+
+<h2>帳票一覧のテンプレート</h2>
+<p>id 要素の値は <code>index-tmpl</code> にしました。</p>
+<p>アプリケーションはまだデータを持っていないのでデータ部分は仮の値を入れておくことにします。</p>
+<p>リスト項目は詳細画面へのリンクを持っています。
+詳細画面に割り当てる予定の URL に設定しておきましょう。</p>
+<pre><code class="lang-html">&lt;script type=<span class="string">"text/ng-template"</span> id=<span class="string">"index-tmpl"</span>&gt;
+  <span class="xml"><span class="tag">&lt;<span class="title">h1</span>&gt;</span>帳票一覧<span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">ul</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">li</span>&gt;</span>#x yyyy/mm/dd <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/sheet/x"</span>&gt;</span>詳細を確認する<span class="tag">&lt;/<span class="title">a</span>&gt;</span><span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">li</span>&gt;</span>#y yyyy/mm/dd <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/sheet/y"</span>&gt;</span>詳細を確認する<span class="tag">&lt;/<span class="title">a</span>&gt;</span><span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">li</span>&gt;</span>#z yyyy/mm/dd <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/sheet/z"</span>&gt;</span>詳細を確認する<span class="tag">&lt;/<span class="title">a</span>&gt;</span><span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">script</span>&gt;</span></span></code></pre>
+<h2>帳票作成のテンプレート</h2>
+<p>id 要素の値は <code>new-tmpl</code> にしました。</p>
+<p>仮値として注文明細行を2つ持っていることにしておきます。</p>
+<p>注文明細行は商品名、単価、個数を入力できるようにします。
+さらに小計の項目と明細行を削除するボタンも持っていることにしましょう。</p>
+<p>合計金額を表示する場所も確保しておきましょう。</p>
+<p>そのほかにも「明細行を追加」などいくつかのボタンとリンクがあります。</p>
+<pre><code class="lang-html">&lt;script type=<span class="string">"text/ng-template"</span> id=<span class="string">"new-tmpl"</span>&gt;
+  <span class="xml"><span class="tag">&lt;<span class="title">h1</span>&gt;</span>帳票作成<span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">table</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">thead</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">th</span>&gt;</span>商品名<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">th</span>&gt;</span>単価<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">th</span>&gt;</span>個数<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">th</span>&gt;</span>小計<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">th</span>&gt;</span><span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">thead</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tbody</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span>4,500<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span>6,000<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tbody</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tfoot</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span> <span class="attribute">colspan</span>=<span class="value">"3"</span>&gt;</span>合計:<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">td</span> <span class="attribute">colspan</span>=<span class="value">"2"</span>&gt;</span>10,500<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tfoot</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">table</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span>&gt;</span>明細行を追加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span>&gt;</span>帳票を初期化<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"submit"</span>&gt;</span>帳票を保存<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">script</span>&gt;</span></span></code></pre>
+<h2>帳票詳細のテンプレート</h2>
+<p>id 要素の値は <code>sheet-tmpl</code> にしました。</p>
+<p>ここでも仮値として注文明細行を2つ持っていることにしておきます。
+表示する項目は作成画面とほぼ同じです。</p>
+<p>このページは作成済みの帳票を閲覧するだけなのでインタラクティブな要素は帳票一覧へ戻るリンクのみです。</p>
+<pre><code class="lang-html">&lt;script type=<span class="string">"text/ng-template"</span> id=<span class="string">"sheet-tmpl"</span>&gt;
+  <span class="xml"><span class="tag">&lt;<span class="title">h1</span>&gt;</span>帳票詳細 #x<span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">p</span>&gt;</span>作成日時: yyyy/mm/dd<span class="tag">&lt;/<span class="title">p</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">table</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">thead</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>商品名<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>単価<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>個数<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">th</span>&gt;</span>小計<span class="tag">&lt;/<span class="title">th</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">thead</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tbody</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>商品名1<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>1,600<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>10<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>16,000<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>商品名2<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>2,000<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>12<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>24,000<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">tbody</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tfoot</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">tr</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span> <span class="attribute">colspan</span>=<span class="value">"3"</span>&gt;</span>合計:<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">td</span>&gt;</span>40,000<span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">tr</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">tfoot</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">table</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">script</span>&gt;</span></span></code></pre>
+

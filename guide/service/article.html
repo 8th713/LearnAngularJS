@@ -1,0 +1,80 @@
+<h2>役割</h2>
+<p>サービスは以下の役割を果たすために使用されるものです。</p>
+<ul>
+<li>アプリケーション共通のオブジェクトを定義する。</li>
+</ul>
+<p>コントローラやディレクティブ、フィルタなどで共通して使われる値や関数を定義する場所です。</p>
+<h2>使う</h2>
+<p>サービスを使用したいコントローラなどのアノテーション配列にサービス名を列挙します。</p>
+<pre><code class="lang-javascript">module.controller(<span class="string">'Ctrl'</span>, [<span class="string">'$scope'</span>, <span class="string">'$http'</span>, <span class="string">'$timeout'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(scope, $http, $timeout)</span> {</span>
+  $http.get(<span class="string">'/data'</span>).success(<span class="function"><span class="keyword">function</span> <span class="params">(data)</span> {</span>
+    scope.data = data;
+  });
+
+  $timeout(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    scope.elapsed = <span class="literal">true</span>;
+  }, <span class="number">1000</span>);
+}]);</code></pre>
+<p>アノテーション配列の最後の関数がサービスを受け取ります。</p>
+<h2>作る</h2>
+<p>module インスタンスの factory, service, value などのメソッドで新しいサービスを定義できます。</p>
+<p>いずれのメソッドも第一引数にサービスの名前を受け取ります。
+factory と service は第二引数にアノテーション配列を受け取ります。</p>
+<p>factory メソッドのアノテーション配列の最後はファクトリ関数です。
+ファクトリ関数が返すべきものはサービスとなるオブジェクトです。
+ファクトリ関数は作成したサービスがはじめて依存注入された時に一度だけ実行されます。
+2回目以降の依存注入では初回で作成されたサービスが渡されます。</p>
+<pre><code class="lang-javascript">module.factory(<span class="string">'delayOneSecond'</span>, [<span class="string">'$timeout'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($timeout)</span> {</span>
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">(callback)</span> {</span>
+    <span class="keyword">return</span> $timeout(callbak, <span class="number">1000</span>);
+  };
+}]);</code></pre>
+<p>service メソッドのアノテーション配列の最後はコンストラクタです。
+コンストラクタは作成したサービスがはじめて依存注入された時に一度だけインスタンス化されます。
+2回目以降の依存注入では初回で作成されたインスタンスが渡されます。</p>
+<pre><code class="lang-javascript">module.service(<span class="string">'storage'</span>, [<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">var</span> storage = {};
+
+  <span class="function"><span class="keyword">function</span> <span class="title">getLange</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> Object.keys(storage).length;
+  }
+
+  <span class="keyword">this</span>.length = <span class="number">0</span>;
+
+  <span class="keyword">this</span>.get = <span class="function"><span class="keyword">function</span> <span class="params">(key)</span> {</span>
+    <span class="keyword">return</span> storage[key];
+  };
+
+  <span class="keyword">this</span>.getAll = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">return</span> angular.copy(storage);
+  };
+
+  <span class="keyword">this</span>.set = <span class="function"><span class="keyword">function</span> <span class="params">(key, value)</span> {</span>
+    storage[key] = value;
+    <span class="keyword">this</span>.length = getLange();
+  };
+
+  <span class="keyword">this</span>.remove = <span class="function"><span class="keyword">function</span> <span class="params">(key)</span> {</span>
+    <span class="keyword">delete</span> storage[key];
+    <span class="keyword">this</span>.length = getLange();
+  };
+}]);</code></pre>
+<p>value メソッドの第二引数はサービスそのものを受け取ります。</p>
+<pre><code class="lang-javascript">module.value(<span class="string">'data'</span>, [
+  {id: <span class="number">1</span>, name: <span class="string">'Alice'</span>},
+  {id: <span class="number">2</span>, name: <span class="string">'Bob'</span>},
+  {id: <span class="number">3</span>, name: <span class="string">'Charlie'</span>}
+]);</code></pre>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+config ブロックで設定を変更できるような高度なサービスを作成する方法として provider メソッドも提供されています。
+</div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+アプリケーション共通の定数定義を作成する手段として constant も提供されています。
+constant で作成されたサービスは config ブロックでも取得できます。
+</div>
+
+<div preview="article.examples.example" size="340"></div>
+

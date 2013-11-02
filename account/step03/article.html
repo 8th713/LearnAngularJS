@@ -1,0 +1,89 @@
+<p>特定のパスを訪問した時、先ほど作成したテンプレートが表示されるようにしましょう。</p>
+<h2>AngularJS でのルーティングの基礎</h2>
+<p>AngularJS のデフォルトのルーティングはハッシュフラグメントでビューを指し示します。
+$location サービスの設定を変更することで History API を使用するモードに変更することも可能です。</p>
+<p>今回はサーバーサイドの実装がありませんのでデフォルトのハッシュフラグメント方式を採用します。
+アプリのページ(<code>./index.html</code>)のフラグメント部分(<code>#</code> 以降の部分)が App モジュールが管理すべきパスになります。</p>
+<h2>ルートにテンプレートを割り当てる</h2>
+<p>App モジュールはルーティングに関する設定をまだ持っていません。
+config メソッドを使ってアプリケーションの設定を行いましょう。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [<span class="string">'ngRoute'</span>])
+.config([<span class="string">'$routeProvider'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($routeProvider)</span> {</span>}]);</code></pre>
+<p>アプリケーションにルーティングの設定を加えるには ngRoute モジュールが提供する <a href="http://docs.angularjs.org/api/ngRoute.$routeProvider">$routeProvider</a> が必要になります。
+コールバックが $routeProvider を受けとれるように依存の注釈を行います。</p>
+<p>ルートを設定するには $routeProvider.when メソッドを使用します。</p>
+<pre><code class="lang-javascript">$routeProvider
+  .when(<span class="string">'/'</span>, {
+    templateUrl: <span class="string">'index-tmpl'</span>
+  })
+  .when(<span class="string">'/new'</span>, {
+    templateUrl: <span class="string">'new-tmpl'</span>
+  })
+  .when(<span class="string">'/sheet/:id'</span>, {
+    templateUrl: <span class="string">'sheet-tmpl'</span>
+  });</code></pre>
+<p>when メソッドは第一引数にルートを割り当てたいパスを、第二引数にルートの設定オブジェクトを受け取ります。</p>
+<h3>帳票一覧ビュー</h3>
+<p>手始めに <code>/</code> に index-tmpl テンプレートを割り当てます。</p>
+<p>オブジェクトの templateUrl プロパティに index-tmpl を設定します。
+templateUrl は本来外部ファイルの URL を受け取りますが前回のステップでも説明したとおりテンプレート化した script 要素の id 属性は URL として扱われるので属性値を与えてやれば OK です。</p>
+<p>これで <code>index.html#/</code> にアクセスすれば index-tmpl テンプレートが使用されるようになりました。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+フラグメント無しでページにアクセスした時、<code>/</code> にルート設定が存在していたら自動的に <code>#/</code> が付与されルート設定が適用されます。
+</div>
+
+<h3>帳票作成ビュー</h3>
+<p>同様の手順で <code>/new</code> に new-tmpl テンプレートを割り当てます。
+<code>index.html#/new</code> のとき new-tmpl テンプレートが使用されます。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+<code>/new/</code> に別の割り当てが無い限り <code>index/html#/new/</code> にアクセスしても new-tmpl テンプレートが使用されます(<code>index/html#/new</code> にリダイレクトされます)。
+</div>
+
+<h3>帳票詳細ビュー</h3>
+<p>帳票詳細ビューは <code>/sheet/帳票の ID</code> で表示するようにしましょう。
+帳票の ID 部分は不定の値になります。</p>
+<p>パスに不定の値を含む場合は <code>:</code> キーワードを使用します。
+<code>:</code> キーワードの後に続く語句は $routeParams サービスオブジェクトのプロパティの名前として使用されます。</p>
+<p>受け取りたい値は帳票の ID なのでそのまま <code>/sheet/:id</code> とし sheet-tmpl テンプレートを設定しましょう。</p>
+<h2>ルートが設定されていないパスにアクセスした時の振る舞いを設定する</h2>
+<p>3つのルート設定が完了しました。
+しかし、このままではルートが設定されていないパスにアクセスがあった時どのテンプレートも表示されず白紙のページになってしまいます。</p>
+<p>ルートが設定されていないパスにアクセスした時、帳票一覧にリダイレクトされるようにしましょう。</p>
+<pre><code class="lang-javascript">$routeProvider
+  .otherwise({
+    redirectTo: <span class="string">'/'</span>
+  });</code></pre>
+<p>個別ルート外のパスにルート設定を行うには otherwise メソッドを使用します。
+otherwise メソッドは when メソッドと同じ形式の設定オブジェクトを受け取ります。</p>
+<p>今回はリダイレクト先を指し示す redirectTo プロパティを設定して <code>index.html#/</code> にリダイレクトされるようにします。</p>
+<h2>テンプレートが注入される要素を用意する</h2>
+<p>ルート設定が完了したのでモジュールはどのパスの時どのテンプレートを使用すればいいのかがわかるようになりました。
+しかし、モジュールは DOM のどの部分にテンプレートを流し込めばいいのかを知りません。</p>
+<p>ngView ディレクティブを使ってテンプレートが注入されるべき要素を指定しましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-view</span>&gt;</span><span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<p>入れ物となる要素を作成し <code>ng-view</code> 属性を追加します。
+ルート設定されたパスにユーザーがアクセスするとこの要素の中身が自動的に指定されたテンプレートに置き換えられます。</p>
+<h2>グローバルナビゲーションを用意する</h2>
+<p>実際にパスが変更された時テンプレートが注入されるかを簡単に確認するためグローバルナビゲーションもマークアップしておきましょう。</p>
+<pre><code class="lang-javascript">&lt;ul&gt;
+  <span class="xml"><span class="tag">&lt;<span class="title">li</span>&gt;</span><span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/"</span>&gt;</span>帳票一覧<span class="tag">&lt;/<span class="title">a</span>&gt;</span><span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">li</span>&gt;</span><span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/new"</span>&gt;</span>帳票作成<span class="tag">&lt;/<span class="title">a</span>&gt;</span><span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">ul</span>&gt;</span></span></code></pre>
+<p>帳票一覧と帳票作成へのリンクを持っていれば場所やマークアップの仕方はお好みで構いません。
+帳票詳細へのリンクは帳票一覧にすでに含まれているので必要ありません。</p>
+<div preview="article.examples.example"></div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+プレビューは見栄えのために <a href="http://getbootstrap.com/" class="alert-link">Bootstrap</a> を使用しています。
+その都合上マークアップが多少違います。
+</div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+プレビューで使用している LocationBar モジュールは iframe 内でもルーティングの状態が見えるようにアドレスバーを表示するためのモジュールです。
+本チュートリアルとは直接関係しないものです。
+</div>
+

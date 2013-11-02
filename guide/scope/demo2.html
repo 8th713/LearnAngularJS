@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../assets/css/example.css">
+</head>
+<body ng-app="Example">
+  <div class="location-bar"></div>
+  <div class="container">
+    <table class="table table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>value</th>
+          <th>old</th>
+          <th>square</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-controller="Ctrl1">
+          <td>Ctrl1 (string)</td>
+          <td>{{ value }}</td>
+          <td>{{ old }}</td>
+          <td>{{ square }}</td>
+          <td><button class="btn btn-primary" ng-click="change()">変更</button></td>
+        </tr>
+        <tr ng-controller="Ctrl2">
+          <td>Ctrl2 (function)</td>
+          <td>{{ value }}</td>
+          <td>{{ old }}</td>
+          <td>{{ square }}</td>
+          <td><button class="btn btn-primary" ng-click="change()">変更</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="table table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>original</th>
+          <th>$watch</th>
+          <th>$watch (objectEquality)</th>
+          <th>$watchCollection</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-controller="Ctrl3">
+          <td>Ctrl3</td>
+          <td>{{ original }}</td>
+          <td class="danger">{{ clone1 }}</td>
+          <td>{{ clone2 }}</td>
+          <td>{{ clone3 }}</td>
+          <td><button class="btn btn-primary" ng-click="change()">変更</button></td>
+        </tr>
+        <tr ng-controller="Ctrl4">
+          <td>Ctrl4</td>
+          <td>{{ original }}</td>
+          <td class="danger">{{ clone1 }}</td>
+          <td>{{ clone2 }}</td>
+          <td class="danger">{{ clone3 }}</td>
+          <td><button class="btn btn-primary" ng-click="change()">変更</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="../../components/angular/angular.min.js"></script>
+  <script src="../../assets/js/location.js"></script>
+  <script src="demo2.js"></script>
+</body>
+</html>

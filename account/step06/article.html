@@ -1,0 +1,78 @@
+<p>前回のステップで後回しにした保存機能を実装しましょう。</p>
+<h2>アプリケーション共通のデータを作成する</h2>
+<p>帳票の保存先である帳票リストは帳票一覧ページで必要なモデルです。
+しかし帳票を作成するには注文明細行のリストが必要であり明細行リストは帳票作成ページのモデルです。
+つまり、帳票リストは異なる2つのコントローラから参照できなければなりません。</p>
+<p>コントローラをまたぐデータをサービスで実装しましょう。</p>
+<pre><code class="lang-javascript">.service(<span class="string">'sheets'</span>, [<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">this</span>.list = []; <span class="comment">// 帳票リスト</span>
+
+  <span class="comment">// 明細行リストを受け取り新しい帳票を作成して帳票リストに加える</span>
+  <span class="keyword">this</span>.add = <span class="function"><span class="keyword">function</span> <span class="params">(lines)</span> {</span>
+    <span class="keyword">this</span>.list.push({
+      id: String(<span class="keyword">this</span>.list.length + <span class="number">1</span>),
+      createdAt: Date.now(),
+      lines: lines
+    });
+  };
+
+  <span class="comment">// 任意の id を持った帳票を返す</span>
+  <span class="keyword">this</span>.get = <span class="function"><span class="keyword">function</span> <span class="params">(id)</span> {</span>
+    <span class="keyword">var</span> list = <span class="keyword">this</span>.list;
+    <span class="keyword">var</span> index = list.length;
+    <span class="keyword">var</span> sheet;
+
+    <span class="keyword">while</span> (index--) {
+      sheet = list[index];
+      <span class="keyword">if</span> (sheet.id === id) {
+        <span class="keyword">return</span> sheet;
+      }
+    }
+    <span class="keyword">return</span> <span class="literal">null</span>;
+  };
+}])</code></pre>
+<p>帳票リストを保持する sheets サービスを実装しました。
+SheetListController は sheets サービスの list プロパティを参照しモデルを作成できます。
+CreationController は add メソッドを使用して明細行リストから帳票を作成し保存することができます。
+SheetController は get メソッドを使用して任意の帳票を取得できます。</p>
+<h2>サービスを使用する</h2>
+<p>帳票の保存先が決まったので CreationController を編集し save メソッドを完成させましょう。</p>
+<p>save メソッドは現在の明細行リストから帳票を作成して保存しさらに、帳票一覧ページへ移動するように実装します。</p>
+<pre><code class="lang-javascript">.controller(<span class="string">'CreationController'</span>, [<span class="string">'$scope'</span>, <span class="string">'$location'</span>, <span class="string">'sheets'</span>,
+<span class="function"><span class="keyword">function</span> <span class="title">CreationController</span><span class="params">($scope, $location, sheets)</span> {</span>
+  <span class="comment">// 省略</span>
+
+  $scope.save = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    sheets.add($scope.lines);
+    $location.path(<span class="string">'/'</span>);
+  };
+
+  <span class="comment">// 省略</span>
+}])</code></pre>
+<p>パスの変更は <a href="http://docs.angularjs.org/api/ng.$location">$location サービス</a>を使用しますので $location サービスと sheets サービスが受け取れるように注釈をつけます。
+sheet.add メソッドを利用し帳票を作成、$location.path メソッドで帳票一覧ページのパスに移動します。</p>
+<p>さらに移動先の帳票一覧ページに作成した帳票が表示されるよう SheetListController と index-tmpl テンプレートを編集します。</p>
+<pre><code class="lang-javascript">.controller(<span class="string">'SheetListController'</span>, [<span class="string">'$scope'</span>, <span class="string">'sheets'</span>,
+<span class="function"><span class="keyword">function</span> <span class="title">SheetListController</span><span class="params">($scope, sheets)</span> {</span>
+  $scope.list = sheets.list; <span class="comment">// 帳票リストモデル</span>
+}])</code></pre>
+<p>sheets.list を参照して帳票リストをモデル化します。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">ul</span> <span class="attribute">ng-show</span>=<span class="value">"list"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"sheet in list"</span>&gt;</span>
+    #<span class="variable">{{ sheet.id }}</span>
+    <span class="variable">{{ sheet.createdAt | date:'yyyy/MM/dd HH:mm' }}</span>
+    <span class="tag">&lt;<span class="title">a</span> <span class="attribute">ng-href</span>=<span class="value">"#/sheet/<span class="variable">{{ sheet.id }}</span>"</span>&gt;</span>詳細を確認する<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+<span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-hide</span>=<span class="value">"list"</span>&gt;</span>
+  帳票が存在しません。 <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"#/new"</span>&gt;</span>新しい帳票を作る<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.directive:ngRepeat">ngRereat ディレクティブ</a>でリスト項目を反復します。
+作成日時は読みやすいように <a href="http://docs.angularjs.org/api/ng.filter:date">date フィルタ</a>で表示を加工しましょう。
+リンクの URL は直接 href 属性にセットせず <a href="http://docs.angularjs.org/api/ng.directive:ngHref">ngHref ディレクティブ</a>を使用しましょう。
+href 属性にテンプレート構文を使用した文字列をセットしてしまうと構文がパースされるまで意図しないアンカーが作成されてしまうなどの問題が生じます。</p>
+<p>さらに帳票リストが空の時は帳票の作成を促すメッセージを表示するようにしましょう。
+<a href="http://docs.angularjs.org/api/ng.directive:ngHide">ngHide ディレクティブ</a> を使用し帳票リストが存在していたら非表示になる要素を用意し、その中にメッセージと作成ページヘのリンクを表示しましょう。</p>
+<p>ついでなので <a href="http://docs.angularjs.org/api/ng.directive:ngShow">ngShow ディレクティブ</a> ディレクティブも使用して リストが空の時 ul 要素が非表示になるようにしておきましょう。</p>
+<div preview="article.examples.example"></div>
+

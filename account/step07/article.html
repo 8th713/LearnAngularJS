@@ -1,0 +1,57 @@
+<p>帳票を保存し一覧を表示できるようになりました。
+しかしこの保存機能には明細行に不正な入力がなされていた場合でも保存できてしまうという問題があります。</p>
+<p>入力の検証を行い不正な帳票は保存できないようにしましょう。</p>
+<h2>適切な帳票の条件</h2>
+<p>検証機能を実装する前に適切な帳票の条件を決めます。</p>
+<ul>
+<li>明細行リストは必ず1つ以上の明細行を持たくてはならない。</li>
+<li>明細行の各項目はすべて必須項目である。</li>
+<li>明細行の単価、個数は n &gt;= 0 でなければならない。</li>
+<li>明細行の単価、個数は 整数でなければならない。</li>
+</ul>
+<h2>削除ボタンを無効化する</h2>
+<p>条件のうち明細行の数については明細行が1つしか存在しない時は削除ボタンが機能しないようにすることで実装することにします。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">ng-disabled</span>=<span class="value">"lines.length &lt; 2"</span>
+            <span class="attribute">ng-click</span>=<span class="value">"removeLine(orderLine)"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.directive:ngDisabled">ngDisabled ディレクティブ</a> を使用し明細行リストの長さが2つ未満の時要素を無効化します。
+これでクリックイベントが発行されなくなるので明細行リストが空になることを防げます。</p>
+<h2>入力を検証する</h2>
+<p>ユーザーの入力が適切かどうかを検証し不正な入力が存在していた時フォームの送信を禁止しましょう。</p>
+<p>まずフォームパーツに制約条件を加えます。</p>
+<p>AngularJS ではいくつかの制約条件については HTML5 で標準化された制約属性がそのまま使用できます。
+使用可能な制約属性は required, min, max の三種類のみで step, pattern などは使用できません。
+使用できない制約属性の代替として ngPattern, ngMaxlength などの独自の属性が用意されています。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"orderLine.productName"</span>
+           <span class="attribute">required</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+<span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span> <span class="attribute">ng-model</span>=<span class="value">"orderLine.unitPrice"</span>
+           <span class="attribute">required</span> <span class="attribute">min</span>=<span class="value">"0"</span> <span class="attribute">ng-pattern</span>=<span class="value">"/^\d+$/"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span>
+<span class="tag">&lt;<span class="title">td</span>&gt;</span><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span> <span class="attribute">ng-model</span>=<span class="value">"orderLine.count"</span>
+           <span class="attribute">required</span> <span class="attribute">min</span>=<span class="value">"0"</span> <span class="attribute">ng-pattern</span>=<span class="value">"/^\d+$/"</span>&gt;</span><span class="tag">&lt;/<span class="title">td</span>&gt;</span></code></pre>
+<p>input 要素はすべて入力必須なので required 属性をセットします。
+input[number] 要素は 0 未満を許容しないので min 属性をセットします。
+pattern 属性は使用できなので ngPattern 属性を代わりに使用して入力を整数に限定します。</p>
+<p>これらの制約条件は ngModel ディレクティブが検証を行うために使用されます。
+検証を行うのは ngModel ディレクティブなので標準化された検証機能が未実装の古いブラウザでも検証を行うことができます。
+逆に検証機能を備えたモダンブラウザでは互いの検証機能が衝突してしまうため form 要素に novalidate 属性をセットしてブラウザサイドの検証機能を無効化する必要があります。</p>
+<p>各制約は ngModel ディレクティブによってリアルタイムで検証されます。
+検証結果は form 要素に紐付いた <a href="http://docs.angularjs.org/api/ng.directive:form.FormController">FormController</a> オブジェクトに格納されています。</p>
+<p>検証結果を参照する必要がある場合フォームパーツが所属している form 要素に name 属性をつけモデル化する必要があります。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">novalidate</span> <span class="attribute">name</span>=<span class="value">"sheetForm"</span> <span class="attribute">ng-submit</span>=<span class="value">"save()"</span>&gt;</span></code></pre>
+<p>これで現在のコンテキストに sheetForm モデルが作成されます。</p>
+<p>検証結果を参照しフォームが不正な状態のとき送信ボタンが無効化されるようにしましょう。
+フォーム全体の検証結果は FormController の $invalid プロパティの状態を参照することで取得できます。</p>
+<pre><code class="lang-html"><span class="xml"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"submit"</span> <span class="attribute">ng-disabled</span>=<span class="value">"sheetForm.</span><span class="variable">$invalid</span><span class="xml">"&gt;帳票を保存<span class="tag">&lt;/<span class="title">button</span>&gt;</span></span></code></pre>
+<p>これで検証に合格できないときは送信できないようになりました。
+しかし、このままではユーザーはなぜ送信できないのかがわからないので不親切です。</p>
+<p>入力に不備があることをユーザーに通知する必要があるのでテンプレートに通知領域を加えましょう。</p>
+<pre><code class="lang-html"><span class="xml"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-show</span>=<span class="value">"sheetForm.</span><span class="variable">$invalid</span><span class="xml">"&gt;
+  <span class="tag">&lt;<span class="title">span</span> <span class="attribute">ng-show</span>=<span class="value">"sheetForm.</span><span class="variable">$error.required</span><span class="xml">"&gt;空欄が存在しています。<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">span</span> <span class="attribute">ng-show</span>=<span class="value">"sheetForm.</span><span class="variable">$error.min</span><span class="xml">"&gt;単価、個数の最小値は </span><span class="number">0</span><span class="xml"> です。<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">span</span> <span class="attribute">ng-show</span>=<span class="value">"sheetForm.</span><span class="variable">$error.pattern</span><span class="xml">"&gt;単価、個数は整数で指定してください。<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.directive:ngShow">ngShow ディレクティブ</a> を使用して sheetForm.$invalid が true の時だけ表示される要素を準備します。</p>
+<p>同様に通知すべきメッセージを3つ用意しそれぞれ必要な時だけ表示されるようにします。
+表示条件は $error プロパティで管理します。</p>
+<p>また検証に合格できなかった要素は ng-invalid というクラスが付与されるので CSS でフォームパーツの見た目を変化させることにします。</p>
+<div preview="article.examples.example" hash="/new"></div>
+

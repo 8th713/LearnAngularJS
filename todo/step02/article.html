@@ -1,0 +1,67 @@
+<p>ユーザインタフェースのモックアップを作成しましょう。</p>
+<h2>新しい ToDo を作成するフォーム</h2>
+<p>まずは新しい ToDo を作成するためのフォームが必要です。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">placeholder</span>=<span class="value">"新しい要件を入力"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"submit"</span>&gt;</span>追加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">form</span>&gt;</span></code></pre>
+<p>要件を入力するテキストフィールドと追加を実行するボタンです。
+input 要素には required 属性を付けて要件が空の時はフォームを送信できないようにしておきましょう。</p>
+<h2>ボタン類</h2>
+<p>アプリケーションの機能を実行するためのボタンも必要ですね。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span>&gt;</span>全て完了/未了<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span> <span class="attribute">class</span>=<span class="value">"active"</span>&gt;</span>全部 <span class="tag">&lt;<span class="title">span</span>&gt;</span>3<span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span>&gt;</span>未了 <span class="tag">&lt;<span class="title">span</span>&gt;</span>2<span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span>&gt;</span>完了 <span class="tag">&lt;<span class="title">span</span>&gt;</span>1<span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span>&gt;</span>完了アイテムを全て削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></code></pre>
+<p>2 ~ 4 個目のボタンは ToDo の絞り込みボタンです。
+選択中のボタンは active クラスがつくことにしましょう。
+span 要素内にはそれぞれの件数を表示しましょう。</p>
+<h2>ToDo リスト</h2>
+<p>ToDo を表示するリストも当然必要です。
+未完了の ToDo、完了した ToDo、編集中の ToDo と3種類の状態のモックアップを作成しましょう。</p>
+<h3>未完了の ToDo</h3>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"checkbox"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span>&gt;</span>未了の ToDo<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"reset"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">li</span>&gt;</span></code></pre>
+<p>状態を示すチェックボックスと削除ボタンを持っています。</p>
+<p>削除ボタンの type 属性は reset にしておきます。
+用途にあっていませんが他のタイプにしてしまうと submit イベントが発生してしまうのでやむを得ない処置です。</p>
+<h3>完了した ToDo</h3>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item done"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"checkbox"</span> <span class="attribute">checked</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span>&gt;</span>完了した ToDo<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"reset"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">li</span>&gt;</span></code></pre>
+<p>完了した ToDo は <code>.todo-title</code> に打ち消し線を引きたいので li 要素に done クラスをつけることにしましょう。</p>
+<h3>編集中の ToDo</h3>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item editing"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"checkbox"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">value</span>=<span class="value">"編集中の ToDo"</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">li</span>&gt;</span></code></pre>
+<p>編集中の ToDo は editing クラスがつくことにします。
+span 要素と button 要素が削除され input 要素が追加されます。</p>
+<div preview="article.examples.example"></div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+プレビューは見栄えのために <a href="http://getbootstrap.com/" class="alert-link">Bootstrap</a> を使用しています。
+その都合上マークアップが多少違います。
+</div>
+
+<div class="alert alert-info">
+<strong>Tip:</strong>
+プレビューで使用している LocationBar モジュールは iframe 内でもルーティングの状態が見えるようにアドレスバーを表示するためのモジュールです。
+本チュートリアルとは直接関係しないものです。
+</div>
+

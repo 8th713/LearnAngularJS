@@ -1,0 +1,253 @@
+body {
+  padding-top: 70px;
+}
+
+hr {
+  border-color: #ddd;
+}
+
+pre {
+  font-size: 14px;
+}
+
+.main-top {
+  margin: -20px 0 0;
+}
+
+.jumbotron {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+}
+
+.jumbotron h1,
+.jumbotron h2,
+.jumbotron h3 {
+  line-height: 1.1;
+}
+
+.jumbotron p {
+  color: #eee;
+}
+
+.jumbotron section {
+  margin-top: 32px;
+}
+
+@media screen and (min-width: 768px) {
+  @font-face {
+    font-family: mplus;
+    font-weight: 100;
+    src: local('M+ 1p'),
+         url('../fonts/mplus-1p-thin.ttf') format('truetype');
+  }
+
+  .jumbotron {
+    font-family: mplus, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 21px;
+  }
+
+  .jumbotron h1,
+  .jumbotron h2,
+  .jumbotron h3 {
+    font-family: mplus, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    line-height: 1.1;
+  }
+
+  .jumbotron h2 {
+    font-size: 49px;
+  }
+
+  .jumbotron h3 {
+    font-size: 32px;
+  }
+}
+
+.jumbotron-blue {
+  background-color: #2980b9;
+}
+
+.jumbotron-sky {
+  background-color: #3498db;
+}
+
+.alert {
+  font-size: 14px;
+}
+
+a.list-group-item:hover,
+a.list-group-item:focus {
+  z-index: 2;
+  color: #ffffff;
+  background-color: #428bca;
+  border-color: #428bca;
+}
+
+.tab-content-code {
+  margin-top: 18px;
+}
+
+.aside {
+  margin-top: 40px;
+}
+
+.pager li > a {
+  border-radius: 3px;
+}
+
+.pager .next > a {
+  color: #fff;
+  background-color: #428bca;
+  border-color: #357ebd;
+}
+
+.pager .next > a:hover,
+.pager .next > a:focus,
+.pager .next > a:active {
+  color: #fff;
+  background-color: #3276b1;
+  border-color: #285e8e;
+}
+
+.preview {
+  width: 100%;
+  min-height: 500px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.footer {
+  border-top: 1px solid #e5e5e5;
+  padding: 40px 0;
+  color: #999;
+}
+
+.footer-link {
+  padding: 0;
+  text-align: center;
+}
+
+.footer-link li {
+  display: inline;
+}
+
+/*! Highlight.js theme */
+/*! github.com style (c) Vasily Polovnyov <vast@whiteants.net> */
+pre .comment,
+pre .template_comment,
+pre .diff .header,
+pre .javadoc {
+  color: #998;
+  /* fixed by 8th713 */
+  /* disabled the font-style because Italics is hard to read in Japanese. */
+  /* font-style: italic */
+}
+
+pre .keyword,
+pre .css .rule .keyword,
+pre .winutils,
+pre .javascript .title,
+pre .nginx .title,
+pre .subst,
+pre .request,
+pre .status {
+  color: #333;
+  font-weight: bold
+}
+
+pre .number,
+pre .hexcolor,
+pre .ruby .constant {
+  color: #099;
+}
+
+pre .string,
+pre .tag .value,
+pre .phpdoc,
+pre .tex .formula {
+  color: #d14
+}
+
+pre .title,
+pre .id {
+  color: #900;
+  font-weight: bold
+}
+
+pre .javascript .title,
+pre .lisp .title,
+pre .clojure .title,
+pre .subst {
+  font-weight: normal
+}
+
+pre .class .title,
+pre .haskell .type,
+pre .vhdl .literal,
+pre .tex .command {
+  color: #458;
+  font-weight: bold
+}
+
+pre .tag,
+pre .tag .title,
+pre .rules .property,
+pre .django .tag .keyword {
+  color: #000080;
+  font-weight: normal
+}
+
+pre .attribute,
+pre .variable,
+pre .lisp .body {
+  color: #008080
+}
+
+pre .regexp {
+  color: #009926
+}
+
+pre .class {
+  color: #458;
+  font-weight: bold
+}
+
+pre .symbol,
+pre .ruby .symbol .string,
+pre .lisp .keyword,
+pre .tex .special,
+pre .prompt {
+  color: #990073
+}
+
+pre .built_in,
+pre .lisp .title,
+pre .clojure .built_in {
+  color: #0086b3
+}
+
+pre .preprocessor,
+pre .pi,
+pre .doctype,
+pre .shebang,
+pre .cdata {
+  color: #999;
+  font-weight: bold
+}
+
+pre .deletion {
+  background: #fdd
+}
+
+pre .addition {
+  background: #dfd
+}
+
+pre .diff .change {
+  background: #0086b3
+}
+
+pre .chunk {
+  color: #aaa
+}

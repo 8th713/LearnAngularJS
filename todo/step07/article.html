@@ -1,0 +1,149 @@
+<p>独自のディレクティブを定義する方法を覚えましょう。</p>
+<h2>編集モードの仕様</h2>
+<p>作成済み ToDo を編集する機能を実装する前に仕様をおさらいします。</p>
+<ul>
+<li>ToDo の要件部分をダブルクリックで編集モードに移行する</li>
+<li>編集中は li 要素に editing クラスが付与される</li>
+<li>編集中は要件部分が input 要素に変わる</li>
+<li>編集中は削除ボタンが消える</li>
+<li>編集モードに移行したら input 要素はテキスト選択状態になる</li>
+<li>送信するか input 要素からフォーカスが外れるかで編集モードを終了する</li>
+<li>編集終了時、要件が空だったら編集前の状態に戻す</li>
+</ul>
+<h2>編集モードへの移行を実装する</h2>
+<p>まずは任意の ToDo モデルを編集モードに出来るようにしましょう。</p>
+<pre><code class="lang-javascript"><span class="keyword">var</span> originalTitle;     <span class="comment">// 編集前の要件</span>
+$scope.editing = <span class="literal">null</span>; <span class="comment">// 編集モードの ToDo モデルを表すモデル</span>
+
+$scope.editTodo = <span class="function"><span class="keyword">function</span> <span class="params">(todo)</span> {</span>
+  originalTitle = todo.title;
+  $scope.editing = todo;
+};</code></pre>
+<p>編集中の ToDo を表す editing モデルを用意します。
+editTodo メソッドを呼び出すことで editing モデルが更新されます。
+編集前の要件を格納しておく変数も合わせて用意しましょう。</p>
+<p>次に要件をダブルクリックした時その ToDo モデルを渡して editTodo が実行されるようにします。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span>
+      <span class="attribute">ng-dblclick</span>=<span class="value">"editTodo(todo)"</span>&gt;</span><span class="variable">{{ todo.title }}</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span></code></pre>
+<p><a href="http://docs.angularjs.org/api/ng.directive:ngDblclick">ngDblclick ディレクティブ</a>でダブルクリックイベントを要素に加えます。
+ngDblclick ディレクティブは ngClick イベントのダブルクリック版です。</p>
+<p>さらに li 要素に <code>.editing</code> を加える必要があるので ngClass ディレクティブを編集しましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">li</span> <span class="attribute">class</span>=<span class="value">"todo-item"</span>
+    <span class="attribute">ng-repeat</span>=<span class="value">"todo in todos | filter:currentFilter"</span>
+    <span class="attribute">ng-class</span>=<span class="value">"{done: todo.done, editing: todo == editing}"</span>&gt;</span></code></pre>
+<p>editing モデルと自身の ToDo モデルを比較することでクラスの付け外しを行います。</p>
+<h2>DOM を編集モード用の表示に切り替える</h2>
+<p>編集モード中は要件を表示していた span 要素の代わりに input 要素を追加する必要があります。</p>
+<p>とりあえず input 要素を準備しましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"checkbox"</span> <span class="attribute">ng-model</span>=<span class="value">"todo.done"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span> <span class="attribute">ng-dblclick</span>=<span class="value">"editTodo(todo)"</span>&gt;</span><span class="variable">{{ todo.title }}</span><span class="tag">&lt;/<span class="title">p</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">ng-model</span>=<span class="value">"todo.title"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"reset"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">form</span>&gt;</span></code></pre>
+<p>input 要素の値は ToDo の要件と連動しなければならないので ngModel ディレクティブの使用を宣言しましょう。</p>
+<p>現状では span 要素と input 要素が同時に表示されています。
+編集モードに合わせてそれぞれが表示、非表示になるようにしなければならないので <a href="http://docs.angularjs.org/api/ng.directive:ngShow">ngShow</a>/<a href="http://docs.angularjs.org/api/ng.directive:ngHide">ngHide</a> ディレクティブを使って表示をコントロールしましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"todo-title"</span> <span class="attribute">ng-dblclick</span>=<span class="value">"editTodo(todo)"</span>
+      <span class="attribute">ng-hide</span>=<span class="value">"todo == editing"</span>&gt;</span><span class="variable">{{ todo.title }}</span><span class="tag">&lt;/<span class="title">p</span>&gt;</span>
+<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">ng-model</span>=<span class="value">"todo.title"</span>
+       <span class="attribute">ng-show</span>=<span class="value">"todo == editing"</span>&gt;</span></code></pre>
+<p>ngShow/ngHide ディレクティブは式を受け取り、式の結果に合わせて要素を表示・非表示にします。
+editing モデルと自身の ToDo モデルを比較し要素の表示・非表示を切り替えます。</p>
+<p>さらに削除ボタンも非表示にする必要があります。
+今度は <a href="http://docs.angularjs.org/api/ng.directive:ngIf">ngIf ディレクティブ</a>を使ってみましょう。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"reset"</span> <span class="attribute">ng-if</span>=<span class="value">"todo != editing"</span>&gt;</span>削除<span class="tag">&lt;/<span class="title">button</span>&gt;</span></code></pre>
+<p>ngIf ディレクティブは ngShow/ngHide とは違い式の結果に合わせて要素を DOM ツリーに追加・削除します。
+式の結果が false ならその要素は DOM ツリーから取り除かれます。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+今回はディレクティブを紹介するために ngShow/ngHide/ngIf を使用しました。
+本来は li 要素のクラスが変異するのを利用して CSS で表示状態をコントロールできるのでディレクティブを使う必要はありません。
+</div>
+
+<div class="alert alert-warning">
+<strong>Warning:</strong>
+ngIf ディレクティブ は v1.0.8 ではサポートされていません。
+</div>
+
+<h2>input 要素を選択状態にする</h2>
+<p>ようやく表示はモックアップと同じになりました。
+次は編集モードに移行したら input 要素を選択状態になるようにしなければなりません。</p>
+<p>input 要素を選択状態にするには HTMLInputElement.prototype.select メソッドを使用すれば簡単です。
+しかし、コントローラは DOM に関わらないのでどの要素を選択状態にすべきかを知り得ません。
+仮に知り得たとしてもコントローラ内で DOM 操作を行うのは良い実装とはいえないでしょう。</p>
+<p>DOM API を使用する必要がある場合は独自のディレクティブを作成しそちらに処理を委譲すべきです。</p>
+<p>式を受け取り結果に応じて要素を選択状態にする mySelect ディレクティブを作成しましょう。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [<span class="string">'LocationBar'</span>])
+.controller(<span class="string">'MainController'</span>, [<span class="comment">/* 省略 */</span>])
+.directive(<span class="string">'mySelect'</span>, [<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">(scope, $el, attrs)</span> {</span>
+    <span class="comment">// scope - 現在の $scope オブジェクト</span>
+    <span class="comment">// $el   - jqLite オブジェクト(jQuery ライクオブジェクト)</span>
+    <span class="comment">//         jQuery 使用時なら jQuery オブジェクト</span>
+    <span class="comment">// attrs - DOM 属性のハッシュ(属性名は正規化されている)</span>
+
+    scope.$watch(attrs.mySelect, <span class="function"><span class="keyword">function</span> <span class="params">(val)</span> {</span>
+      <span class="keyword">if</span> (val) {
+        $el[<span class="number">0</span>].select();
+      }
+    });
+  };
+}]);</code></pre>
+<p>$watch メソッドを使い mySelect 属性の値(ディレクティブが受け取る式)の評価結果を監視し sleect メソッドを実行するかどうかを判断します
+。</p>
+<p>作成したディレクティブを使用してみましょう。
+html 上ではディレクティブ名がハイフンケースになることに注意してください。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">ng-model</span>=<span class="value">"todo.title"</span> <span class="attribute">ng-show</span>=<span class="value">"todo == editing"</span>
+       <span class="attribute">my-select</span>=<span class="value">"todo == editing"</span>&gt;</span></code></pre>
+<p>input 要素を選択状態にする条件は ngShow ディレクティブと同一です。</p>
+<h2>編集を確定し編集モードを終了させる</h2>
+<p>編集中の ToDo はフォームが送信されるか input 要素からフォーカスが外れた時編集モードを抜けなくてはなりません。
+ngSubmit/<a href="http://docs.angularjs.org/api/ng.directive:ngBlur">ngBlur ディレクティブ</a>を使い編集モードから抜ける処理を実行させましょう。</p>
+<pre><code class="lang-javascript">$scope.doneEdit = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  $scope.editing = <span class="literal">null</span>;
+};</code></pre>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">ng-submit</span>=<span class="value">"doneEdit()"</span>&gt;</span>
+  <span class="comment">&lt;!-- 省略 --&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">ng-model</span>=<span class="value">"todo.title"</span>
+         <span class="attribute">ng-show</span>=<span class="value">"todo == editing"</span> <span class="attribute">my-select</span>=<span class="value">"todo == editing"</span>
+         <span class="attribute">ng-blur</span>=<span class="value">"doneEdit()"</span>&gt;</span></code></pre>
+<div class="alert alert-warning">
+<strong>Warning:</strong>
+ngBlur ディレクティブ は v1.0.8 ではサポートされていません。
+</div>
+
+<p>編集モードを抜けるには editing モデルを初期値に戻してやればいいだけです。
+しかし、このままだと要件が空のまま input 要素からフォーカスが外れた時も編集モードから抜けてしまいます(input 要素には required 属性が付いているので送信については問題ありません)。
+もし編集モードから抜けるとき要件が空なら編集前の値に戻さなければなりません。</p>
+<p>今回の場合は非常に単純な例なので doneEdit メソッドで editing モデルの title プロパティが空かを調べればたやすく実装できます。
+しかし、コントローラはフォームパーツがどんな制約条件を持っているかを知らないのでフォームパーツに新たな制約条件を加えた時いちいち doneEdit を修正せねばならなくなります。</p>
+<p>AngularJS には <a href="http://docs.angularjs.org/api/ng.directive:form.FormController">FormController オブジェクト</a>というバリデーションを簡単に行える機能が提供されているのでそちらに任せることにしましょう。</p>
+<p>FormController オブジェクトを取得するには form 要素に name 属性を与えるだけです。</p>
+<pre><code class="lang-html"><span class="tag">&lt;<span class="title">form</span> <span class="attribute">name</span>=<span class="value">"todoForm"</span>
+      <span class="attribute">ng-submit</span>=<span class="value">"doneEdit(todoForm)"</span>&gt;</span>
+  <span class="comment">&lt;!-- 省略 --&gt;</span>
+  <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> <span class="attribute">ng-model</span>=<span class="value">"todo.title"</span>
+         <span class="attribute">ng-show</span>=<span class="value">"todo == editing"</span> <span class="attribute">my-select</span>=<span class="value">"todo == editing"</span>
+         <span class="attribute">ng-blur</span>=<span class="value">"doneEdit(todoForm)"</span>&gt;</span></code></pre>
+<p>form 要素に name 属性を加えると $scope オブジェクトに属性値と同じ名前のプロパティが作成され、そこに form 要素に結びついた FormController オブジェクトが代入されます。</p>
+<p>doneEdit が FormController を受け取るように修正しました。
+doneEdit を編集してフォームのバリデーション結果を受け取りましょう。</p>
+<pre><code class="lang-javascript">$scope.doneEdit = <span class="function"><span class="keyword">function</span> <span class="params">(todoForm)</span> {</span>
+  <span class="keyword">if</span> (todoForm.$invalid) {
+    $scope.editing.title = originalTitle;
+  }
+  $scope.editing = originalTitle = <span class="literal">null</span>;
+};</code></pre>
+<p>FormController は結び付けられた form 要素のフォームパーツの検証結果を保持しています。
+もしひとつでも不正な入力値が存在していたら $invalid プロパティが true になります。
+それを利用して要件を編集前の状態に戻します。</p>
+<div class="alert alert-info">
+<strong>Tip:</strong>
+FormController は $scope オブジェクトのプロパティに代入されるため $scope.todoForm から参照できます。
+しかし、FormController への名前付けはビューが担っているので直接参照してしまうとビューを編集した時コントローラは FormController を見失うことになります。
+そのためビューから引数で受け渡すようにしたほうが良いでしょう。
+</div>
+
+<div preview="article.examples.example"></div>
+

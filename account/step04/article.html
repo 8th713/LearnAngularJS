@@ -1,0 +1,29 @@
+<p>それぞれのビューに対するコントローラを準備しましょう。</p>
+<h2>ルートにコントローラをセットする</h2>
+<p>テンプレートはまだ仮値を表示しているだけの状態です。
+テンプレートはモデルを参照しデータを表示しなければなりません。</p>
+<p>各ルートにコントローラをセットし任意のルート訪問時にそのルートのみで扱うモデルを定義できるようにしましょう。</p>
+<h3>コントローラを準備する</h3>
+<p>ルート設定は3つなのでコントローラも3つ用意します。</p>
+<pre><code class="lang-javascript">angular.module(<span class="string">'App'</span>, [<span class="string">'ngRoute'</span>])
+.config([<span class="comment">/* 省略 */</span>])
+.controller(<span class="string">'SheetListController'</span>, [<span class="function"><span class="keyword">function</span> <span class="title">SheetListController</span><span class="params">()</span> {</span><span class="comment">/* 一覧用 */</span>}])
+.controller(<span class="string">'CreationController'</span>, [<span class="function"><span class="keyword">function</span> <span class="title">CreationController</span><span class="params">()</span> {</span><span class="comment">/* 作成用 */</span>}])
+.controller(<span class="string">'SheetController'</span>, [<span class="function"><span class="keyword">function</span> <span class="title">SheetController</span><span class="params">()</span> {</span><span class="comment">/* 詳細用 */</span>}]);</code></pre>
+<h3>ルートにコントローラをセットする</h3>
+<p>when メソッドに渡す設定オブジェクトを編集してルートで使用するコントローラを使用します。</p>
+<pre><code class="lang-javascript">$routeProvider
+  .when(<span class="string">'/'</span>, {
+    templateUrl: <span class="string">'index-tmpl'</span>,
+    controller: <span class="string">'SheetListController'</span>
+  })
+  .when(<span class="string">'/new'</span>, {
+    templateUrl: <span class="string">'new-tmpl'</span>,
+    controller: <span class="string">'CreationController'</span>
+  })
+  .when(<span class="string">'/sheet/:id'</span>, {
+    templateUrl: <span class="string">'sheet-tmpl'</span>,
+    controller: <span class="string">'SheetController'</span>
+  })</code></pre>
+<p>設定オブジェクトの controller プロパティにルートで使用するコントローラの名前をセットします。</p>
+
