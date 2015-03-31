@@ -84,9 +84,3 @@ span 要素と button 要素が削除され input 要素が追加されます。
 プレビューは見栄えのために <a href="http://getbootstrap.com/" class="alert-link">Bootstrap</a> を使用しています。
 その都合上マークアップが多少違います。
 </div>
-
-<div class="alert alert-info">
-**Tip:**
-プレビューで使用している LocationBar モジュールは iframe 内でもルーティングの状態が見えるようにアドレスバーを表示するためのモジュールです。
-本チュートリアルとは直接関係しないものです。
-</div>

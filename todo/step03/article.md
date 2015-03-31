@@ -109,3 +109,9 @@ $scope オブジェクトはキーワードとなった名前のプロパティ(
 プレビューで実際に動く様子を確認してみましょう。
 
 <div preview="article.examples.example"></div>
+
+<div class="alert alert-info">
+**Tip:**
+プレビューで使用している LocationBar モジュールは iframe 内でもルーティングの状態が見えるようにアドレスバーを表示するためのモジュールです。
+本チュートリアルとは直接関係しないものです。
+</div>
